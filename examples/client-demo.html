@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hey-INY Client Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background: #5568d3;
+        }
+
+        .button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status.recognized { background: #d4edda; color: #155724; }
+        .status.recovered { background: #fff3cd; color: #856404; }
+        .status.new { background: #d1ecf1; color: #0c5460; }
+
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-time {
+            color: #858585;
+        }
+
+        .log-info {
+            color: #4ec9b0;
+        }
+
+        .log-error {
+            color: #f48771;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔍 Hey-INY Client Demo</h1>
+            <p class="subtitle">Device Fingerprinting & User Identification</p>
+
+            <div>
+                <button class="button" onclick="initialize()">Initialize System</button>
+                <button class="button" onclick="identifyUser()">Identify User</button>
+                <button class="button" onclick="showFingerprint()">Show Fingerprint</button>
+                <button class="button" onclick="resetUUID()">Reset UUID</button>
+            </div>
+        </div>
+
+        <div class="card" id="identityCard" style="display: none;">
+            <h2>Identity Information</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">User ID</div>
+                    <div class="info-value" id="userId">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Session ID</div>
+                    <div class="info-value" id="sessionId">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div class="info-value" id="status">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Confidence</div>
+                    <div class="info-value" id="confidence">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Client UUID</div>
+                    <div class="info-value" id="clientUUID">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Device Changed</div>
+                    <div class="info-value" id="deviceChanged">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="fingerprintCard" style="display: none;">
+            <h2>Device Fingerprint</h2>
+            <pre id="fingerprintData"></pre>
+        </div>
+
+        <div class="card">
+            <h2>Console Log</h2>
+            <div class="log" id="console"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Note: In real implementation, import from npm package or CDN
+        // import { HeyINY, UUIDManager, DeviceFingerprint } from 'hey-iny-client';
+
+        // For demo purposes, we'll simulate the client
+        let clientUUID = null;
+        let deviceFingerprint = null;
+
+        window.log = function(message, type = 'info') {
+            const consoleDiv = document.getElementById('console');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'log-error' : 'log-info';
+            consoleDiv.innerHTML += `<div class="log-entry"><span class="log-time">[${time}]</span> <span class="${className}">${message}</span></div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        };
+
+        window.initialize = async function() {
+            log('Initializing Hey-INY system...');
+            
+            // Generate UUID (simplified version)
+            if (localStorage.getItem('hey_iny_client_uuid')) {
+                clientUUID = localStorage.getItem('hey_iny_client_uuid');
+                log('Existing UUID found: ' + clientUUID);
+            } else {
+                clientUUID = crypto.randomUUID();
+                localStorage.setItem('hey_iny_client_uuid', clientUUID);
+                log('New UUID generated: ' + clientUUID);
+            }
+
+            log('✓ System initialized successfully');
+        };
+
+        window.identifyUser = async function() {
+            if (!clientUUID) {
+                log('Please initialize the system first', 'error');
+                return;
+            }
+
+            log('Collecting device fingerprint...');
+
+            // Collect device information (simplified)
+            const deviceInfo = {
+                collectedAt: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                language: navigator.language,
+                languages: navigator.languages || [navigator.language],
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timezoneOffset: new Date().getTimezoneOffset(),
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    colorDepth: screen.colorDepth,
+                    pixelRatio: window.devicePixelRatio || 1
+                },
+                hardware: {
+                    hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+                    deviceMemory: navigator.deviceMemory || 'unknown'
+                }
+            };
+
+            deviceFingerprint = deviceInfo;
+            log('Device fingerprint collected');
+
+            log('Sending identification request...');
+
+            try {
+                // In real implementation, send to server
+                // const response = await fetch('http://localhost:3000/api/v1/identify', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify({ client_uuid: clientUUID, device_info: deviceInfo })
+                // });
+
+                // Simulate server response
+                const mockResponse = {
+                    user_id: 'usr_' + Math.random().toString(36).substr(2, 9),
+                    session_id: 'ses_' + Math.random().toString(36).substr(2, 9),
+                    status: clientUUID === localStorage.getItem('hey_iny_client_uuid') ? 'recognized' : 'new',
+                    confidence: 1.0,
+                    is_device_changed: false
+                };
+
+                log('✓ Identification successful');
+                displayIdentity(mockResponse);
+
+            } catch (error) {
+                log('✗ Identification failed: ' + error.message, 'error');
+            }
+        };
+
+        function displayIdentity(data) {
+            document.getElementById('identityCard').style.display = 'block';
+            document.getElementById('userId').textContent = data.user_id;
+            document.getElementById('sessionId').textContent = data.session_id;
+            
+            const statusElem = document.getElementById('status');
+            statusElem.innerHTML = `<span class="status ${data.status}">${data.status.toUpperCase()}</span>`;
+            
+            document.getElementById('confidence').textContent = (data.confidence * 100).toFixed(1) + '%';
+            document.getElementById('clientUUID').textContent = clientUUID;
+            document.getElementById('deviceChanged').textContent = data.is_device_changed ? 'Yes' : 'No';
+        }
+
+        window.showFingerprint = function() {
+            if (!deviceFingerprint) {
+                log('No fingerprint available. Please identify user first.', 'error');
+                return;
+            }
+
+            document.getElementById('fingerprintCard').style.display = 'block';
+            document.getElementById('fingerprintData').textContent = JSON.stringify(deviceFingerprint, null, 2);
+            log('Fingerprint displayed');
+        };
+
+        window.resetUUID = function() {
+            localStorage.removeItem('hey_iny_client_uuid');
+            clientUUID = null;
+            log('UUID reset. Click "Initialize System" to generate a new UUID.');
+        };
+
+        // Auto-initialize on load
+        window.addEventListener('load', () => {
+            log('Hey-INY Demo loaded');
+            log('Note: This is a demo. Real implementation requires server setup.');
+        });
+    </script>
+</body>
+</html>

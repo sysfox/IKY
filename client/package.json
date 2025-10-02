@@ -1,0 +1,40 @@
+{
+  "name": "hey-iny-client",
+  "version": "1.0.0",
+  "description": "Client-side device fingerprinting and UUID management for Hey-INY user identity system",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "lint": "eslint src --ext .js,.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "device-fingerprinting",
+    "user-identification",
+    "canvas-fingerprint",
+    "audio-fingerprint",
+    "uuid-management"
+  ],
+  "author": "Hey-INY Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/preset-env": "^7.23.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "eslint": "^8.50.0",
+    "jest": "^29.7.0",
+    "rollup": "^4.0.0"
+  }
+}
