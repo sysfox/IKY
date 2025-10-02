@@ -158,8 +158,8 @@
 <body>
     <div class="container">
         <div class="card">
-            <h1>🔍 Hey-INY Client Demo</h1>
-            <p class="subtitle">Device Fingerprinting & User Identification</p>
+            <h1>🔍 IKY Client Demo</h1>
+            <p class="subtitle">I Know You - Device Fingerprinting & User Identification</p>
 
             <div>
                 <button class="button" onclick="initialize()">Initialize System</button>
@@ -212,7 +212,7 @@
 
     <script type="module">
         // Note: In real implementation, import from npm package or CDN
-        // import { HeyINY, UUIDManager, DeviceFingerprint } from 'hey-iny-client';
+        // import { HeyINY, UUIDManager, DeviceFingerprint } from 'iky-client';
 
         // For demo purposes, we'll simulate the client
         let clientUUID = null;
@@ -227,15 +227,15 @@
         };
 
         window.initialize = async function() {
-            log('Initializing Hey-INY system...');
+            log('Initializing IKY system...');
             
             // Generate UUID (simplified version)
-            if (localStorage.getItem('hey_iny_client_uuid')) {
-                clientUUID = localStorage.getItem('hey_iny_client_uuid');
+            if (localStorage.getItem('iky_client_uuid')) {
+                clientUUID = localStorage.getItem('iky_client_uuid');
                 log('Existing UUID found: ' + clientUUID);
             } else {
                 clientUUID = crypto.randomUUID();
-                localStorage.setItem('hey_iny_client_uuid', clientUUID);
+                localStorage.setItem('iky_client_uuid', clientUUID);
                 log('New UUID generated: ' + clientUUID);
             }
 
@@ -288,7 +288,7 @@
                 const mockResponse = {
                     user_id: 'usr_' + Math.random().toString(36).substr(2, 9),
                     session_id: 'ses_' + Math.random().toString(36).substr(2, 9),
-                    status: clientUUID === localStorage.getItem('hey_iny_client_uuid') ? 'recognized' : 'new',
+                    status: clientUUID === localStorage.getItem('iky_client_uuid') ? 'recognized' : 'new',
                     confidence: 1.0,
                     is_device_changed: false
                 };
@@ -326,14 +326,14 @@
         };
 
         window.resetUUID = function() {
-            localStorage.removeItem('hey_iny_client_uuid');
+            localStorage.removeItem('iky_client_uuid');
             clientUUID = null;
             log('UUID reset. Click "Initialize System" to generate a new UUID.');
         };
 
         // Auto-initialize on load
         window.addEventListener('load', () => {
-            log('Hey-INY Demo loaded');
+            log('IKY Demo loaded');
             log('Note: This is a demo. Real implementation requires server setup.');
         });
     </script>

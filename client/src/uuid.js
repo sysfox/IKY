@@ -1,14 +1,14 @@
 /**
- * Hey-INY Client UUID Manager
+ * IKY Client UUID Manager
  * Manages persistent UUID across localStorage, IndexedDB, and Cookie fallbacks
  */
 
 export class UUIDManager {
   constructor(options = {}) {
-    this.storageKey = options.storageKey || 'hey_iny_client_uuid';
-    this.cookieName = options.cookieName || 'hey_iny_uuid';
+    this.storageKey = options.storageKey || 'iky_client_uuid';
+    this.cookieName = options.cookieName || 'iky_uuid';
     this.cookieMaxAge = options.cookieMaxAge || 365 * 24 * 60 * 60; // 1 year in seconds
-    this.dbName = options.dbName || 'HeyINYDB';
+    this.dbName = options.dbName || 'IKYDB';
     this.dbStoreName = options.dbStoreName || 'uuid_store';
   }
 

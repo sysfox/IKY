@@ -1,4 +1,4 @@
--- Hey-INY Database Schema
+-- IKY Database Schema
 -- Initial migration: Three-layer identity system with complete device profiling
 
 -- Enable UUID extension
@@ -345,7 +345,7 @@ COMMENT ON COLUMN device_change_history.match_confidence IS 'Confidence score of
 -- ============================================================================
 DO $$
 BEGIN
-    RAISE NOTICE '✓ Hey-INY database schema created successfully';
+    RAISE NOTICE '✓ IKY database schema created successfully';
     RAISE NOTICE '✓ Tables: user_identities, user_device_profiles, device_change_history, identity_matching_logs';
     RAISE NOTICE '✓ Indexes: Created for optimal query performance';
     RAISE NOTICE '✓ Triggers: Auto-generation of IDs and timestamp updates';

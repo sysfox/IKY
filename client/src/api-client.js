@@ -1,5 +1,5 @@
 /**
- * Hey-INY API Client
+ * IKY API Client
  * Handles communication with the server-side identification API
  */
 

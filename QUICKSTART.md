@@ -1,11 +1,12 @@
 # Quick Start Guide
 
-Get Hey-INY up and running in 5 minutes.
+Get IKY (I Know You) up and running in 5 minutes.
 
 ## Prerequisites
 
-- Node.js 16+ installed
+- Node.js 22+ installed
 - PostgreSQL 13+ installed and running
+- pnpm 8+ installed
 - Basic knowledge of JavaScript
 
 ## Step 1: Clone and Install
@@ -15,29 +16,32 @@ Get Hey-INY up and running in 5 minutes.
 git clone https://github.com/sysfox/Hey-INY.git
 cd Hey-INY
 
+# Install pnpm globally (if not already installed)
+npm install -g pnpm
+
 # Install server dependencies
 cd server
-npm install
+pnpm install
 
 # Install client dependencies
 cd ../client
-npm install
+pnpm install
 ```
 
 ## Step 2: Setup Database
 
 ```bash
 # Create database
-createdb hey_iny
+createdb iky
 
 # Or using psql
-psql -U postgres -c "CREATE DATABASE hey_iny;"
+psql -U postgres -c "CREATE DATABASE iky;"
 
 # Run migrations
-psql -U postgres -d hey_iny -f ../database/migrations/001_initial_schema.sql
+psql -U postgres -d iky -f ../database/migrations/001_initial_schema.sql
 ```
 
-If you see "Hey-INY database schema created successfully", you're good to go!
+If you see "IKY database schema created successfully", you're good to go!
 
 ## Step 3: Configure Server
 
@@ -51,7 +55,7 @@ cp .env.example .env
 # Minimal required settings:
 # DB_HOST=localhost
 # DB_PORT=5432
-# DB_NAME=hey_iny
+# DB_NAME=iky
 # DB_USER=postgres
 # DB_PASSWORD=your_password
 ```
@@ -59,13 +63,14 @@ cp .env.example .env
 ## Step 4: Start the Server
 
 ```bash
-npm start
+pnpm start
 ```
 
 You should see:
 ```
-🚀 Hey-INY Server Started
+🚀 IKY (I Know You) Server Started
 📍 Server URL: http://0.0.0.0:3000
+⚡ Node.js: v22.x.x
 ```
 
 ## Step 5: Test the API
@@ -183,23 +188,34 @@ curl "http://localhost:3000/api/v1/users/usr_abc123xyz789/device-history?page=1&
 **Solution:**
 ```bash
 cd server
-rm -rf node_modules package-lock.json
-npm install
+rm -rf node_modules pnpm-lock.yaml
+pnpm install
+```
+
+### Security Audit Warnings
+
+**Problem:** Security vulnerabilities detected
+
+**Solution:**
+```bash
+cd server
+pnpm audit
+pnpm audit --fix
 ```
 
 ## Next Steps
 
-Now that you have Hey-INY running:
+Now that you have IKY running:
 
 1. **Integrate the Client Library**
    ```javascript
-   import { HeyINY } from 'hey-iny-client';
+   import { HeyINY } from 'iky-client';
    
-   const heyiny = new HeyINY({
+   const iky = new HeyINY({
      api: { baseURL: 'http://localhost:3000' }
    });
    
-   const result = await heyiny.identify();
+   const result = await iky.identify();
    console.log('User ID:', result.user_id);
    ```
 
@@ -226,10 +242,23 @@ For development with auto-reload:
 
 ```bash
 cd server
-npm run dev
+pnpm run dev
 ```
 
 This uses nodemon to automatically restart the server when files change.
+
+## Running Tests
+
+```bash
+# Run all tests
+cd server && pnpm test
+
+# Run tests with coverage
+cd server && pnpm run test:coverage
+
+# Run security audit
+cd server && pnpm run security:audit
+```
 
 ## Support
 

@@ -1,5 +1,5 @@
 /**
- * Hey-INY Client Library
+ * IKY Client Library
  * Main entry point for the client-side device fingerprinting and identification system
  */
 

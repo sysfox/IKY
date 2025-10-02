@@ -1,10 +1,12 @@
-# Hey-INY - User Identity & Device Fingerprinting System
+# IKY - I Know You
+
+## User Identity & Device Fingerprinting System
 
 A comprehensive user identity recognition system based on a three-layer identity architecture and complete device profiling.
 
 ## Overview
 
-This system implements a sophisticated user identification mechanism that combines:
+IKY (I Know You) implements a sophisticated user identification mechanism that combines:
 - Client-side persistent UUID management
 - Server-side device fingerprinting
 - Multi-level identity matching algorithms
@@ -18,6 +20,41 @@ The system achieves precise user identification and device change tracking throu
 1. Client-side persistent UUID
 2. Server-side device fingerprinting
 3. Complete device change history
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Node.js >= 22.0.0** (Required)
+- **pnpm >= 8.0.0** (Package manager)
+- PostgreSQL >= 13.x
+- Basic knowledge of JavaScript
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/sysfox/Hey-INY.git
+cd Hey-INY
+
+# Install pnpm (if not already installed)
+npm install -g pnpm
+
+# Install dependencies
+cd server && pnpm install
+cd ../client && pnpm install
+
+# Setup database
+createdb iky
+psql iky < ../database/migrations/001_initial_schema.sql
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Start the server
+cd ../server
+pnpm start
+```
 
 ## Architecture
 
@@ -48,7 +85,7 @@ Change detection and classification:
 ## Project Structure
 
 ```
-Hey-INY/
+IKY/
 ├── client/                 # Client-side fingerprinting library
 │   ├── src/
 │   │   ├── fingerprint.js  # Device fingerprinting
@@ -76,9 +113,9 @@ Hey-INY/
 ## Quick Start
 
 ### Prerequisites
-- Node.js >= 16.x
+- Node.js >= 22.0.0
+- pnpm >= 8.0.0
 - PostgreSQL >= 13.x
-- npm or yarn
 
 ### Installation
 
@@ -88,29 +125,31 @@ git clone https://github.com/sysfox/Hey-INY.git
 cd Hey-INY
 ```
 
-2. Install dependencies:
+2. Install pnpm (if not already installed):
 ```bash
-# Install server dependencies
-cd server && npm install
-
-# Install client dependencies
-cd ../client && npm install
-
-# Install dashboard dependencies
-cd ../dashboard && npm install
+npm install -g pnpm
 ```
 
-3. Setup database:
+3. Install dependencies:
+```bash
+# Install server dependencies
+cd server && pnpm install
+
+# Install client dependencies
+cd ../client && pnpm install
+```
+
+4. Setup database:
 ```bash
 # Create PostgreSQL database
-createdb hey_iny
+createdb iky
 
 # Run migrations
 cd ../database
-psql hey_iny < migrations/001_initial_schema.sql
+psql iky < migrations/001_initial_schema.sql
 ```
 
-4. Configure environment:
+5. Configure environment:
 ```bash
 # Copy example environment file
 cp server/.env.example server/.env
@@ -118,13 +157,10 @@ cp server/.env.example server/.env
 # Edit .env with your database credentials
 ```
 
-5. Start the services:
+6. Start the services:
 ```bash
 # Start server
-cd server && npm start
-
-# Start dashboard (in another terminal)
-cd dashboard && npm run dev
+cd server && pnpm start
 ```
 
 ## Usage
@@ -132,7 +168,7 @@ cd dashboard && npm run dev
 ### Client Integration
 
 ```javascript
-import { DeviceFingerprint, UUIDManager } from 'hey-iny-client';
+import { DeviceFingerprint, UUIDManager } from 'iky-client';
 
 // Initialize UUID manager
 const uuidManager = new UUIDManager();
@@ -224,7 +260,7 @@ Edit `server/.env`:
 # Database
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=hey_iny
+DB_NAME=iky
 DB_USER=postgres
 DB_PASSWORD=your_password
 
@@ -242,23 +278,32 @@ DEVICE_CHANGE_THRESHOLD=0.5
 ### Running Tests
 ```bash
 # Server tests
-cd server && npm test
+cd server && pnpm test
 
 # Client tests
-cd client && npm test
+cd client && pnpm test
 ```
 
 ### Building for Production
 ```bash
 # Build client library
-cd client && npm run build
-
-# Build dashboard
-cd dashboard && npm run build
+cd client && pnpm run build
 
 # Build server
-cd server && npm run build
+cd server && pnpm run build
 ```
+
+## Security Features
+
+IKY implements comprehensive security measures:
+
+- ✅ **Rate Limiting**: Prevents abuse with configurable limits
+- ✅ **Enhanced Security Headers**: Using Helmet.js with CSP
+- ✅ **Input Validation**: All API inputs are validated
+- ✅ **Hash-Based Storage**: Fingerprints stored as SHA-256 hashes
+- ✅ **CORS Protection**: Configurable origin policies
+- ✅ **GDPR Compliance**: UUID deletion capability
+- ✅ **Automated Security Audits**: CI/CD pipeline includes security checks
 
 ## Monitoring and Logging
 
@@ -268,12 +313,22 @@ The system includes comprehensive logging and monitoring:
 - API performance metrics
 - Anomaly detection alerts
 
+## CI/CD Pipeline
+
+Automated testing and deployment:
+- ✅ Lint and test on every push
+- ✅ Security audits
+- ✅ Database integration tests
+- ✅ Coverage reporting
+- ✅ Automated builds
+
 ## Security Considerations
 
 - All device information is hashed before storage
 - No PII (Personally Identifiable Information) is collected without consent
 - UUID management includes secure fallback mechanisms
 - API endpoints should be protected with authentication in production
+- Regular security audits via pnpm audit
 
 ## License
 
@@ -292,3 +347,7 @@ For issues and questions:
 ## Acknowledgments
 
 This project implements advanced device fingerprinting techniques for user identification while respecting user privacy.
+
+---
+
+**Built with Node.js 22+, pnpm, and modern security practices.**
