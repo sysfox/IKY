@@ -1,30 +1,13 @@
-# Build stage
-FROM node:22-alpine AS builder
-
-WORKDIR /app
-
-# Install pnpm
-RUN npm install -g pnpm@8.15.0
-
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile --prod
-
 # Production stage
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm@8.15.0
-
-# Copy dependencies from builder
-COPY --from=builder /app/node_modules ./node_modules
-
 # Copy package files
-COPY package.json ./
+COPY package.json package-lock.json ./
+
+# Install dependencies with npm
+RUN npm ci --only=production
 
 # Copy application source
 COPY src ./src

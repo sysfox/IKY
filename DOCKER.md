@@ -63,6 +63,8 @@ cd server
 docker build -t iky-server:local .
 ```
 
+**Note**: The Dockerfile uses `npm ci` for compatibility. While the project uses `pnpm` for development, npm is used in Docker builds for better compatibility across different environments. The `package-lock.json` file ensures consistent dependency versions.
+
 ### Running the Server Container
 
 ```bash
