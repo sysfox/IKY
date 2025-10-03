@@ -227,7 +227,7 @@ export class UUIDManager {
     const results = await Promise.allSettled([
       Promise.resolve(this._saveToLocalStorage(uuid)),
       this._saveToIndexedDB(uuid),
-      Promise.resolve(this._saveToCookie(uuid))
+      Promise.resolve(this._saveToCookie(uuid)),
     ]);
 
     const successCount = results.filter(r => r.status === 'fulfilled' && r.value).length;
