@@ -4,82 +4,102 @@
 
 A comprehensive user identity recognition system based on a three-layer identity architecture and complete device profiling.
 
-## Overview
-
-IKY (I Know You) implements a sophisticated user identification mechanism that combines:
-- Client-side persistent UUID management
-- Server-side device fingerprinting
-- Multi-level identity matching algorithms
-- Complete device change history tracking
-
-## Core Design Philosophy
-
-**"Three-Layer Identity System + Complete Device Profile"**
-
-The system achieves precise user identification and device change tracking through:
-1. Client-side persistent UUID
-2. Server-side device fingerprinting
-3. Complete device change history
-
-## 🚀 Quick Start
+## 🚀 Quick Start with Docker
 
 ### Prerequisites
-- **Node.js >= 22.0.0** (Required)
-- **pnpm >= 8.0.0** (Package manager)
-- PostgreSQL >= 13.x (or use Docker)
-- Basic knowledge of JavaScript
+- Docker and Docker Compose installed
+- External PostgreSQL database (13+)
 
-### Option 1: Docker Deployment (Recommended)
+### Deployment Steps
 
-```bash
-# Clone the repository
-git clone https://github.com/sysfox/Hey-INY.git
-cd Hey-INY
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/sysfox/IKY.git
+   cd IKY
+   ```
 
-# Create environment file
-cp .env.docker.example .env
-# Edit .env and set your database password
+2. **Configure environment**:
+   ```bash
+   cp .env.docker.example .env
+   nano .env
+   ```
+   
+   Configure your external PostgreSQL database:
+   - `DB_HOST` - Your PostgreSQL server hostname
+   - `DB_NAME` - Database name
+   - `DB_USER` - Database user
+   - `DB_PASSWORD` - Strong database password
+   - `DB_PORT` - Database port (default: 5432)
 
-# Start services with Docker Compose
-docker-compose up -d
+3. **Start the service**:
+   ```bash
+   docker-compose up -d
+   ```
 
-# Check status
-docker-compose ps
+4. **Verify deployment**:
+   ```bash
+   docker-compose ps
+   docker-compose logs -f server
+   
+   # Test the API
+   curl http://localhost:3010/api/v1/health
+   ```
 
-# Test the API
-curl http://localhost:3000/api/v1/health
-```
+5. **Access Admin Panel**:
+   Open your browser and navigate to:
+   ```
+   http://localhost:3010/admin.html
+   ```
 
-See [DOCKER.md](DOCKER.md) for detailed Docker deployment instructions.
+For detailed Docker deployment instructions, see [DOCKER.md](DOCKER.md).
 
-### Option 2: Traditional Installation
+## ✨ Features
 
-```bash
-# Clone the repository
-git clone https://github.com/sysfox/Hey-INY.git
-cd Hey-INY
+- **Automatic Database Migrations** - Database schema is automatically migrated on server startup
+- **Web Admin Panel** - Beautiful web interface for user registration and management
+- **Three-Layer Identity System** - Client UUID + Device Fingerprinting + Complete History
+- **Admin Role Management** - First registered user automatically becomes admin
+- **Registration Control** - Enable/disable new user registration from admin panel
 
-# Install pnpm (if not already installed)
-npm install -g pnpm
+## 🎯 Admin Panel
 
-# Install dependencies
-cd server && pnpm install
-cd ../client && pnpm install
+The admin panel provides:
+- Dashboard with system statistics
+- User management and viewing
+- UUID management and deletion
+- Registration control (enable/disable)
+- Real-time monitoring
 
-# Setup database
-createdb iky
-psql iky < ../database/migrations/001_initial_schema.sql
+**First-time Setup**: The first user registered via `/api/v1/identify` automatically becomes an admin.
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your database credentials
+## 🔧 Configuration
 
-# Start the server
-cd ../server
-pnpm start
-```
+Default configuration:
+- **Port**: 3010
+- **Database Migrations**: Automatic on startup
+- **Admin Panel**: Available at `/admin.html`
 
-## Architecture
+See `.env.docker.example` for all available environment variables.
+
+## 📚 API Documentation
+
+### Main Endpoints
+
+- `GET /` - API information
+- `GET /api/v1/health` - Health check
+- `POST /api/v1/identify` - User identification
+- `GET /api/v1/users/:userId/device-history` - Device history
+- `GET /api/v1/users/:userId/statistics` - User statistics
+
+### Admin Endpoints (require X-User-ID header with admin role)
+
+- `GET /api/v1/admin/users` - List all users
+- `GET /api/v1/admin/uuids` - List all UUIDs
+- `GET /api/v1/admin/users/:userId/profile` - User profile
+- `DELETE /api/v1/admin/uuids/:uuid` - Delete UUID
+- `PATCH /api/v1/admin/settings/:key` - Update settings
+
+## 🏗️ Architecture
 
 ### 1. Identity Recognition Layer
 - **Client UUID**: Client-generated and persistently stored random UUID
@@ -105,91 +125,27 @@ Change detection and classification:
 - **Major Changes**: OS replacement, hardware changes → Create new device session
 - **Device Reset**: UUID changes but hardware features match → Identity recovery
 
-## Project Structure
+## 📦 Project Structure
 
 ```
 IKY/
-├── client/                 # Client-side fingerprinting library
-│   ├── src/
-│   │   ├── fingerprint.js  # Device fingerprinting
-│   │   ├── uuid.js         # UUID management
-│   │   └── api-client.js   # API communication
-│   └── package.json
-├── server/                 # Server-side API
+├── server/                 # Server-side API with admin panel
 │   ├── src/
 │   │   ├── api/           # REST API endpoints
 │   │   ├── services/      # Business logic
-│   │   ├── models/        # Database models
-│   │   └── utils/         # Utility functions
+│   │   ├── utils/         # Utility functions (incl. migrations)
+│   │   └── index.js       # Main entry point
+│   ├── public/            # Static files (admin panel)
 │   └── package.json
-├── dashboard/             # Web dashboard for visualization
-│   ├── src/
-│   │   ├── components/   # React components
-│   │   └── pages/        # Dashboard pages
-│   └── package.json
-├── database/             # Database schemas and migrations
+├── client/                # Client-side fingerprinting library
+│   └── src/
+├── database/              # Database migrations
 │   └── migrations/
-└── docs/                 # Documentation
-    └── api.md           # API documentation
+├── docker-compose.yml     # Docker composition
+└── DOCKER.md             # Docker deployment guide
 ```
 
-## Quick Start
-
-### Prerequisites
-- Node.js >= 22.0.0
-- pnpm >= 8.0.0
-- PostgreSQL >= 13.x
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/sysfox/Hey-INY.git
-cd Hey-INY
-```
-
-2. Install pnpm (if not already installed):
-```bash
-npm install -g pnpm
-```
-
-3. Install dependencies:
-```bash
-# Install server dependencies
-cd server && pnpm install
-
-# Install client dependencies
-cd ../client && pnpm install
-```
-
-4. Setup database:
-```bash
-# Create PostgreSQL database
-createdb iky
-
-# Run migrations
-cd ../database
-psql iky < migrations/001_initial_schema.sql
-psql iky < migrations/002_add_admin_and_registration_control.sql
-```
-
-5. Configure environment:
-```bash
-# Copy example environment file
-cp server/.env.example server/.env
-
-# Edit .env with your database credentials
-```
-
-6. Start the services:
-```bash
-# Start server
-cd server && pnpm start
-```
-
-7. Create first admin user (see [Admin Setup Guide](docs/ADMIN_SETUP.md))
-
-## Usage
+## 🛠️ Usage
 
 ### Client Integration
 
@@ -205,7 +161,7 @@ const fingerprint = new DeviceFingerprint();
 const deviceInfo = await fingerprint.collect();
 
 // Send to server for identification
-const response = await fetch('http://your-server/api/v1/identify', {
+const response = await fetch('http://localhost:3010/api/v1/identify', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -219,12 +175,9 @@ console.log('User Identity:', result.user_id);
 console.log('Status:', result.status); // 'recognized', 'recovered', or 'new'
 ```
 
-### Server API
+### API Example
 
-#### POST /api/v1/identify
-Identify or create user based on client UUID and device fingerprint.
-
-**Request:**
+**POST /api/v1/identify**
 ```json
 {
   "client_uuid": "550e8400-e29b-41d4-a716-446655440000",
@@ -232,7 +185,6 @@ Identify or create user based on client UUID and device fingerprint.
     "userAgent": "Mozilla/5.0...",
     "screen": { "width": 1920, "height": 1080 },
     "canvas": "hash_of_canvas_fingerprint",
-    "audio": "hash_of_audio_fingerprint",
     ...
   }
 }
@@ -249,119 +201,7 @@ Identify or create user based on client UUID and device fingerprint.
 }
 ```
 
-## Features
-
-### Device Fingerprinting
-- Canvas fingerprinting for GPU/driver detection
-- Audio context fingerprinting
-- Font enumeration
-- WebGL renderer information
-- Hardware concurrency detection
-- Screen and color depth analysis
-
-### Identity Matching
-- Multi-level matching algorithm
-- Weighted similarity scoring
-- Configurable confidence thresholds
-- Automatic identity recovery
-
-### Change Detection
-- Real-time device change detection
-- Historical change tracking
-- Change classification (minor/major/reset)
-- Timeline visualization
-
-### Admin Panel
-- **First user becomes admin** - Automatic admin role assignment
-- **Registration control** - Auto-disable after first user
-- **UUID management** - List, view, and delete client UUIDs
-- **User profile generation** - Comprehensive user analytics
-- **Role management** - Promote/demote users
-- **System settings** - Global configuration control
-
-See [Admin Setup Guide](docs/ADMIN_SETUP.md) and [Admin API Documentation](docs/ADMIN_API.md) for details.
-
-### Dashboard
-- Device history timeline
-- Side-by-side device comparison
-- Change statistics and analytics
-- Export functionality
-
-## Configuration
-
-### Server Configuration
-Edit `server/.env`:
-
-```bash
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=iky
-DB_USER=postgres
-DB_PASSWORD=your_password
-
-# API
-API_PORT=3000
-API_HOST=0.0.0.0
-
-# Matching thresholds
-MATCH_CONFIDENCE_THRESHOLD=0.75
-DEVICE_CHANGE_THRESHOLD=0.5
-```
-
-## Development
-
-### Database Management with Prisma
-
-IKY includes Prisma ORM for type-safe database access:
-
-```bash
-# Generate Prisma Client
-cd server && pnpm run prisma:generate
-
-# Open Prisma Studio (visual database browser)
-pnpm run prisma:studio
-
-# Create a migration
-pnpm run prisma:migrate
-```
-
-See [server/PRISMA.md](server/PRISMA.md) for detailed Prisma usage.
-
-### Running Tests
-```bash
-# Server tests
-cd server && pnpm test
-
-# Client tests
-cd client && pnpm test
-```
-
-### Building for Production
-```bash
-# Build client library
-cd client && pnpm run build
-
-# Server runs directly from source
-cd server && pnpm start
-```
-
-### Docker Development
-
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-
-# View logs
-docker-compose logs -f server
-
-# Rebuild after changes
-docker-compose up -d --build server
-```
-
-## Security Features
-
-IKY implements comprehensive security measures:
+## 🔒 Security Features
 
 - ✅ **Rate Limiting**: Prevents abuse with configurable limits
 - ✅ **Enhanced Security Headers**: Using Helmet.js with CSP
@@ -369,51 +209,9 @@ IKY implements comprehensive security measures:
 - ✅ **Hash-Based Storage**: Fingerprints stored as SHA-256 hashes
 - ✅ **CORS Protection**: Configurable origin policies
 - ✅ **GDPR Compliance**: UUID deletion capability
-- ✅ **Automated Security Audits**: CI/CD pipeline includes security checks
+- ✅ **Admin Authentication**: Role-based access control
 
-## Monitoring and Logging
-
-The system includes comprehensive logging and monitoring:
-- Identity recognition events
-- Match success/recovery rates
-- API performance metrics
-- Anomaly detection alerts
-
-## CI/CD Pipeline
-
-Automated testing and deployment:
-- ✅ Lint and test on every push
-- ✅ Security audits
-- ✅ Database integration tests
-- ✅ Coverage reporting
-- ✅ Automated builds
-- ✅ Docker image building and publishing
-- ✅ Automatic release creation with timestamp tags
-- ✅ Multi-platform Docker support (linux/amd64, linux/arm64)
-
-### Releases
-
-On every successful build to `main`, a new release is automatically created with:
-- Timestamp-based tag (e.g., `202510031541`)
-- Client and server artifacts (tar.gz)
-- Docker images published to GitHub Container Registry
-- Automatic release notes with changes
-
-Pull Docker images:
-```bash
-docker pull ghcr.io/sysfox/iky-server:latest
-docker pull ghcr.io/sysfox/iky-server:202510031541
-```
-
-## Security Considerations
-
-- All device information is hashed before storage
-- No PII (Personally Identifiable Information) is collected without consent
-- UUID management includes secure fallback mechanisms
-- API endpoints should be protected with authentication in production
-- Regular security audits via pnpm audit
-
-## License
+## 📄 License
 
 MIT License - see LICENSE file for details
 

@@ -10,12 +10,13 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import apiRoutes from './api/routes.js';
 import adminRoutes from './api/admin-routes.js';
+import { runMigrations } from './utils/migrate.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3010;
 const HOST = process.env.HOST || '0.0.0.0';
 const API_PREFIX = process.env.API_PREFIX || '/api/v1';
 
@@ -64,6 +65,9 @@ app.use(compression()); // Response compression
 app.use(express.json({ limit: '10mb' })); // JSON body parser
 app.use(express.urlencoded({ extended: true, limit: '10mb' })); // URL-encoded body parser
 
+// Serve static files from public directory
+app.use(express.static('public'));
+
 // Request logging
 app.use((req, res, next) => {
   const start = Date.now();
@@ -90,6 +94,7 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     description: 'User identity and device fingerprinting system',
     nodeVersion: process.version,
+    adminPanel: '/admin.html',
     endpoints: {
       health: `${API_PREFIX}/health`,
       identify: `${API_PREFIX}/identify`,
@@ -126,33 +131,46 @@ app.use((err, req, res, _next) => {
 });
 
 // Start server
-app.listen(PORT, HOST, () => {
-  console.log('='.repeat(60));
-  console.log('🚀 IKY (I Know You) Server Started');
-  console.log('='.repeat(60));
-  console.log(`📍 Server URL: http://${HOST}:${PORT}`);
-  console.log(`🔗 API Prefix: ${API_PREFIX}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔒 CORS Origin: ${process.env.CORS_ORIGIN || '*'}`);
-  console.log(`⚡ Node.js: ${process.version}`);
-  console.log('='.repeat(60));
-  console.log('\nAvailable endpoints:');
-  console.log('  GET  / - API information');
-  console.log(`  GET  ${API_PREFIX}/health - Health check`);
-  console.log(`  POST ${API_PREFIX}/identify - User identification (rate limited)`);
-  console.log(`  GET  ${API_PREFIX}/users/:userId/device-history - Device history`);
-  console.log(`  GET  ${API_PREFIX}/users/:userId/statistics - User statistics`);
-  console.log(`  POST ${API_PREFIX}/devices/compare - Compare devices`);
-  console.log('\nAdmin endpoints (require X-User-ID header with admin role):');
-  console.log(`  GET  ${API_PREFIX}/admin/users - List all users`);
-  console.log(`  GET  ${API_PREFIX}/admin/uuids - List all UUIDs`);
-  console.log(`  GET  ${API_PREFIX}/admin/users/:userId/profile - User profile`);
-  console.log(`  PATCH ${API_PREFIX}/admin/users/:userId - Update user`);
-  console.log(`  DELETE ${API_PREFIX}/admin/uuids/:uuid - Delete UUID`);
-  console.log(`  GET  ${API_PREFIX}/admin/settings - Get settings`);
-  console.log(`  PATCH ${API_PREFIX}/admin/settings/:key - Update setting`);
-  console.log('='.repeat(60));
-});
+const startServer = async () => {
+  try {
+    // Run database migrations first
+    await runMigrations();
+    
+    // Then start the server
+    app.listen(PORT, HOST, () => {
+      console.log('='.repeat(60));
+      console.log('🚀 IKY (I Know You) Server Started');
+      console.log('='.repeat(60));
+      console.log(`📍 Server URL: http://${HOST}:${PORT}`);
+      console.log(`🔗 API Prefix: ${API_PREFIX}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🔒 CORS Origin: ${process.env.CORS_ORIGIN || '*'}`);
+      console.log(`⚡ Node.js: ${process.version}`);
+      console.log('='.repeat(60));
+      console.log('\nAvailable endpoints:');
+      console.log('  GET  / - API information');
+      console.log(`  GET  ${API_PREFIX}/health - Health check`);
+      console.log(`  POST ${API_PREFIX}/identify - User identification (rate limited)`);
+      console.log(`  GET  ${API_PREFIX}/users/:userId/device-history - Device history`);
+      console.log(`  GET  ${API_PREFIX}/users/:userId/statistics - User statistics`);
+      console.log(`  POST ${API_PREFIX}/devices/compare - Compare devices`);
+      console.log('\nAdmin endpoints (require X-User-ID header with admin role):');
+      console.log(`  GET  ${API_PREFIX}/admin/users - List all users`);
+      console.log(`  GET  ${API_PREFIX}/admin/uuids - List all UUIDs`);
+      console.log(`  GET  ${API_PREFIX}/admin/users/:userId/profile - User profile`);
+      console.log(`  PATCH ${API_PREFIX}/admin/users/:userId - Update user`);
+      console.log(`  DELETE ${API_PREFIX}/admin/uuids/:uuid - Delete UUID`);
+      console.log(`  GET  ${API_PREFIX}/admin/settings - Get settings`);
+      console.log(`  PATCH ${API_PREFIX}/admin/settings/:key - Update setting`);
+      console.log('='.repeat(60));
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {

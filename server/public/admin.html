@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKY Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+        }
+        
+        .panel {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            width: auto;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-error {
+            background: #fee;
+            color: #c00;
+            border: 1px solid #fcc;
+        }
+        
+        .alert-success {
+            background: #efe;
+            color: #060;
+            border: 1px solid #cfc;
+        }
+        
+        .alert-info {
+            background: #eef;
+            color: #006;
+            border: 1px solid #ccf;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-admin {
+            background: #667eea;
+            color: white;
+        }
+        
+        .badge-user {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .badge-active {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .badge-inactive {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .toggle-switch {
+            margin-left: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 IKY Admin Panel</h1>
+            <p>User Identity & Device Fingerprinting System Management</p>
+        </div>
+        
+        <!-- Login Panel -->
+        <div id="loginPanel" class="panel">
+            <h2>Admin Login</h2>
+            <div class="login-form">
+                <div id="loginAlert" class="alert alert-error"></div>
+                <div class="form-group">
+                    <label for="adminUserId">Admin User ID:</label>
+                    <input type="text" id="adminUserId" placeholder="Enter your admin user ID (e.g., usr_xxxxx)">
+                </div>
+                <button class="btn" onclick="login()">Login</button>
+                <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px;">
+                    <p style="font-size: 14px; color: #666;">
+                        <strong>First time?</strong> The first user registered via the <code>/api/v1/identify</code> endpoint automatically becomes an admin.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Admin Dashboard -->
+        <div id="adminPanel" class="hidden">
+            <div class="panel">
+                <h2>Dashboard</h2>
+                <div id="dashboardAlert" class="alert alert-error"></div>
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3>Total Users</h3>
+                        <div class="value" id="totalUsers">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total UUIDs</h3>
+                        <div class="value" id="totalUuids">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Registration Status</h3>
+                        <div class="value" id="regStatus">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>System Settings</h2>
+                <div id="settingsAlert" class="alert alert-error"></div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: flex; align-items: center; font-weight: 500;">
+                        <span>Registration Enabled:</span>
+                        <span class="toggle-switch">
+                            <button id="toggleRegBtn" class="btn btn-small" onclick="toggleRegistration()">Loading...</button>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Users Management</h2>
+                <div id="usersAlert" class="alert alert-error"></div>
+                <div class="table-container">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Role</th>
+                                <th>Created At</th>
+                                <th>Last Seen</th>
+                                <th>Sessions</th>
+                                <th>Devices</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersBody">
+                            <tr><td colspan="7" class="loading">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>UUIDs Management</h2>
+                <div id="uuidsAlert" class="alert alert-error"></div>
+                <div class="table-container">
+                    <table id="uuidsTable">
+                        <thead>
+                            <tr>
+                                <th>UUID</th>
+                                <th>User ID</th>
+                                <th>First Seen</th>
+                                <th>Last Seen</th>
+                                <th>Visits</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="uuidsBody">
+                            <tr><td colspan="6" class="loading">Loading UUIDs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let adminUserId = null;
+        const API_BASE = window.location.origin + '/api/v1';
+        
+        function showAlert(elementId, message, type = 'error') {
+            const alertDiv = document.getElementById(elementId);
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            alertDiv.style.display = 'block';
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        async function login() {
+            const userId = document.getElementById('adminUserId').value.trim();
+            
+            if (!userId) {
+                showAlert('loginAlert', 'Please enter your admin user ID');
+                return;
+            }
+            
+            try {
+                // Verify admin status
+                const response = await fetch(`${API_BASE}/admin/users`, {
+                    headers: {
+                        'X-User-ID': userId
+                    }
+                });
+                
+                if (response.ok) {
+                    adminUserId = userId;
+                    localStorage.setItem('adminUserId', userId);
+                    document.getElementById('loginPanel').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    loadDashboard();
+                } else if (response.status === 403) {
+                    showAlert('loginAlert', 'Access denied. This user is not an admin.');
+                } else {
+                    showAlert('loginAlert', 'Invalid user ID or server error.');
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Failed to connect to server: ' + error.message);
+            }
+        }
+        
+        async function loadDashboard() {
+            await Promise.all([
+                loadStats(),
+                loadSettings(),
+                loadUsers(),
+                loadUuids()
+            ]);
+        }
+        
+        async function loadStats() {
+            try {
+                const [usersRes, uuidsRes] = await Promise.all([
+                    fetch(`${API_BASE}/admin/users?per_page=1`, {
+                        headers: { 'X-User-ID': adminUserId }
+                    }),
+                    fetch(`${API_BASE}/admin/uuids?per_page=1`, {
+                        headers: { 'X-User-ID': adminUserId }
+                    })
+                ]);
+                
+                if (usersRes.ok && uuidsRes.ok) {
+                    const usersData = await usersRes.json();
+                    const uuidsData = await uuidsRes.json();
+                    
+                    document.getElementById('totalUsers').textContent = usersData.pagination?.total || 0;
+                    document.getElementById('totalUuids').textContent = uuidsData.pagination?.total || 0;
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+        
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/settings`, {
+                    headers: { 'X-User-ID': adminUserId }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const regEnabled = data.data.registration_enabled || false;
+                    updateRegistrationUI(regEnabled);
+                }
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+            }
+        }
+        
+        function updateRegistrationUI(enabled) {
+            const btn = document.getElementById('toggleRegBtn');
+            const status = document.getElementById('regStatus');
+            
+            if (enabled) {
+                btn.textContent = 'Disable Registration';
+                btn.className = 'btn btn-small btn-danger';
+                status.textContent = 'OPEN';
+                status.style.color = '#27ae60';
+            } else {
+                btn.textContent = 'Enable Registration';
+                btn.className = 'btn btn-small';
+                status.textContent = 'CLOSED';
+                status.style.color = '#e74c3c';
+            }
+            btn.dataset.enabled = enabled;
+        }
+        
+        async function toggleRegistration() {
+            const btn = document.getElementById('toggleRegBtn');
+            const currentState = btn.dataset.enabled === 'true';
+            const newState = !currentState;
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/settings/registration_enabled`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-ID': adminUserId
+                    },
+                    body: JSON.stringify({ value: newState })
+                });
+                
+                if (response.ok) {
+                    updateRegistrationUI(newState);
+                    showAlert('settingsAlert', 'Registration setting updated successfully', 'success');
+                } else {
+                    showAlert('settingsAlert', 'Failed to update registration setting');
+                }
+            } catch (error) {
+                showAlert('settingsAlert', 'Failed to update setting: ' + error.message);
+            }
+        }
+        
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/users?per_page=50`, {
+                    headers: { 'X-User-ID': adminUserId }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const tbody = document.getElementById('usersBody');
+                    
+                    if (data.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #666;">No users found</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = data.data.map(user => `
+                        <tr>
+                            <td><code>${user.user_identity_id}</code></td>
+                            <td><span class="badge badge-${user.role}">${user.role.toUpperCase()}</span></td>
+                            <td>${new Date(user.created_at).toLocaleString()}</td>
+                            <td>${new Date(user.last_seen_at).toLocaleString()}</td>
+                            <td>${user.total_sessions}</td>
+                            <td>${user.total_devices}</td>
+                            <td><span class="badge badge-${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    showAlert('usersAlert', 'Failed to load users');
+                }
+            } catch (error) {
+                showAlert('usersAlert', 'Failed to load users: ' + error.message);
+            }
+        }
+        
+        async function loadUuids() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/uuids?per_page=50`, {
+                    headers: { 'X-User-ID': adminUserId }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const tbody = document.getElementById('uuidsBody');
+                    
+                    if (data.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">No UUIDs found</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = data.data.map(uuid => `
+                        <tr>
+                            <td><code>${uuid.client_uuid}</code></td>
+                            <td><code>${uuid.user_identity_id}</code></td>
+                            <td>${new Date(uuid.first_seen_at).toLocaleString()}</td>
+                            <td>${new Date(uuid.last_seen_at).toLocaleString()}</td>
+                            <td>${uuid.visit_count}</td>
+                            <td>
+                                <button class="btn btn-small btn-danger" onclick="deleteUuid('${uuid.client_uuid}')">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    showAlert('uuidsAlert', 'Failed to load UUIDs');
+                }
+            } catch (error) {
+                showAlert('uuidsAlert', 'Failed to load UUIDs: ' + error.message);
+            }
+        }
+        
+        async function deleteUuid(uuid) {
+            if (!confirm(`Are you sure you want to delete UUID: ${uuid}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/uuids/${uuid}`, {
+                    method: 'DELETE',
+                    headers: { 'X-User-ID': adminUserId }
+                });
+                
+                if (response.ok) {
+                    showAlert('uuidsAlert', 'UUID deleted successfully', 'success');
+                    loadUuids();
+                    loadStats();
+                } else {
+                    showAlert('uuidsAlert', 'Failed to delete UUID');
+                }
+            } catch (error) {
+                showAlert('uuidsAlert', 'Failed to delete UUID: ' + error.message);
+            }
+        }
+        
+        // Auto-login if stored
+        window.addEventListener('load', () => {
+            const storedUserId = localStorage.getItem('adminUserId');
+            if (storedUserId) {
+                document.getElementById('adminUserId').value = storedUserId;
+                login();
+            }
+        });
+    </script>
+</body>
+</html>
