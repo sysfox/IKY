@@ -2,23 +2,42 @@
  * Admin authentication and authorization middleware
  */
 import { query } from '../utils/database.js';
+import AdminAuthService from '../services/admin-auth-service.js';
+
+const adminAuthService = new AdminAuthService();
 
 /**
  * Check if user is admin
+ * Supports both session token and legacy X-User-ID header
  */
 export async function isAdmin(req, res, next) {
   try {
+    // Try session token first (new method)
+    const sessionToken = req.headers['x-session-token'] || req.headers['authorization']?.replace('Bearer ', '');
+    
+    if (sessionToken) {
+      const session = await adminAuthService.verifySession(sessionToken);
+      
+      if (session) {
+        // Valid session, proceed
+        req.adminId = session.adminId;
+        req.adminUsername = session.username;
+        return next();
+      }
+    }
+
+    // Fall back to legacy X-User-ID header (for backward compatibility)
     const userId = req.headers['x-user-id'];
     
     if (!userId) {
       return res.status(401).json({
         success: false,
         error: 'Unauthorized',
-        message: 'User ID is required in X-User-ID header',
+        message: 'Authentication required. Use X-Session-Token header or X-User-ID header.',
       });
     }
 
-    // Check if user exists and is admin
+    // Check if user exists and is admin (legacy method)
     const result = await query(
       'SELECT role FROM user_identities WHERE user_identity_id = $1',
       [userId],
@@ -39,7 +58,7 @@ export async function isAdmin(req, res, next) {
       });
     }
 
-    // User is admin, proceed
+    // User is admin, proceed (legacy)
     req.userId = userId;
     next();
   } catch (error) {
