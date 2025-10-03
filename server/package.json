@@ -8,7 +8,7 @@
     "node": ">=22.0.0",
     "pnpm": ">=8.0.0"
   },
-  "packageManager": "pnpm@8.15.0",
+  "packageManager": "pnpm@8.15.9",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
