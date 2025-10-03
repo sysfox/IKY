@@ -62,8 +62,8 @@ jobs:
           tar -czf ../iky-client-${{ steps.timestamp.outputs.tag }}.tar.gz \
             dist/ \
             package.json \
-            README.md \
-            LICENSE
+            ../README.md \
+            ../LICENSE
       
       - name: Package server artifact
         run: |
@@ -73,8 +73,8 @@ jobs:
             node_modules/ \
             package.json \
             .env.example \
-            README.md \
-            LICENSE
+            ../README.md \
+            ../LICENSE
       
       - name: Create Release
         id: create_release
