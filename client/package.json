@@ -2,6 +2,7 @@
   "name": "iky-client",
   "version": "1.0.0",
   "description": "Client-side device fingerprinting and UUID management for IKY (I Know You) user identity system",
+  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",

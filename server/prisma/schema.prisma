@@ -1,0 +1,181 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserIdentity {
+  id               String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userIdentityId   String   @unique @map("user_identity_id") @db.VarChar(50)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastSeenAt       DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  totalSessions    Int      @default(1) @map("total_sessions")
+  totalDevices     Int      @default(1) @map("total_devices")
+  isActive         Boolean  @default(true) @map("is_active")
+  metadata         Json     @default("{}") @db.JsonB
+
+  // Relations
+  deviceProfiles      UserDeviceProfile[]
+  deviceChangeHistory DeviceChangeHistory[]
+  matchingLogs        IdentityMatchingLog[]
+
+  @@index([userIdentityId])
+  @@index([lastSeenAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+  @@index([isActive])
+  @@map("user_identities")
+}
+
+model UserDeviceProfile {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userIdentityId     String    @map("user_identity_id") @db.Uuid
+  deviceSessionId    String    @unique @map("device_session_id") @db.VarChar(50)
+  clientUuid         String    @map("client_uuid") @db.VarChar(50)
+  
+  // Device fingerprint hashes
+  canvasFingerprint  String?   @map("canvas_fingerprint") @db.VarChar(64)
+  audioFingerprint   String?   @map("audio_fingerprint") @db.VarChar(64)
+  webglFingerprint   String?   @map("webgl_fingerprint") @db.VarChar(64)
+  
+  // Basic environment
+  userAgent          String?   @map("user_agent") @db.Text
+  platform           String?   @db.VarChar(100)
+  language           String?   @db.VarChar(20)
+  timezone           String?   @db.VarChar(100)
+  timezoneOffset     Int?      @map("timezone_offset")
+  
+  // Screen information
+  screenWidth        Int?      @map("screen_width")
+  screenHeight       Int?      @map("screen_height")
+  screenColorDepth   Int?      @map("screen_color_depth")
+  screenPixelRatio   Decimal?  @map("screen_pixel_ratio") @db.Decimal(4, 2)
+  
+  // Hardware information
+  hardwareConcurrency Int?     @map("hardware_concurrency")
+  deviceMemory        Int?     @map("device_memory")
+  
+  // Software environment
+  fontsList           String[] @map("fonts_list")
+  pluginsList         String[] @map("plugins_list")
+  
+  // Network information
+  ipAddress          String?   @map("ip_address") @db.Inet
+  country            String?   @db.VarChar(100)
+  city               String?   @db.VarChar(100)
+  isp                String?   @db.VarChar(255)
+  
+  // WebGL information
+  webglVendor        String?   @map("webgl_vendor") @db.VarChar(255)
+  webglRenderer      String?   @map("webgl_renderer") @db.VarChar(255)
+  
+  // Complete device info (JSON storage for flexibility)
+  deviceInfoRaw      Json      @map("device_info_raw") @db.JsonB
+  
+  // Timestamps
+  firstSeenAt        DateTime  @default(now()) @map("first_seen_at") @db.Timestamptz(6)
+  lastSeenAt         DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  
+  // Status
+  isCurrent          Boolean   @default(true) @map("is_current")
+  visitCount         Int       @default(1) @map("visit_count")
+
+  // Relations
+  userIdentity UserIdentity @relation(fields: [userIdentityId], references: [id], onDelete: Cascade)
+
+  @@index([userIdentityId])
+  @@index([clientUuid])
+  @@index([deviceSessionId])
+  @@index([canvasFingerprint])
+  @@index([audioFingerprint])
+  @@index([isCurrent])
+  @@index([lastSeenAt(sort: Desc)])
+  @@index([canvasFingerprint, audioFingerprint, webglFingerprint])
+  @@index([hardwareConcurrency, deviceMemory, screenWidth, screenHeight])
+  @@map("user_device_profiles")
+}
+
+model DeviceChangeHistory {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userIdentityId     String    @map("user_identity_id") @db.Uuid
+  deviceSessionId    String    @map("device_session_id") @db.VarChar(50)
+  previousSessionId  String?   @map("previous_session_id") @db.VarChar(50)
+  
+  // Change classification
+  changeType         String    @map("change_type") @db.VarChar(50) // 'minor', 'major', 'device_reset', 'new_device'
+  changeCategory     String?   @map("change_category") @db.VarChar(50) // 'browser_update', 'ip_change', etc.
+  
+  // Change details
+  changedFields      String[]  @map("changed_fields")
+  changeSummary      String?   @map("change_summary") @db.Text
+  
+  // Previous and new values (for comparison)
+  previousValues     Json?     @map("previous_values") @db.JsonB
+  newValues          Json?     @map("new_values") @db.JsonB
+  
+  // Confidence and matching
+  matchConfidence    Decimal?  @map("match_confidence") @db.Decimal(5, 4)
+  recoveryMethod     String?   @map("recovery_method") @db.VarChar(50) // 'uuid_match', 'fingerprint_match', etc.
+  
+  // Timestamps
+  detectedAt         DateTime  @default(now()) @map("detected_at") @db.Timestamptz(6)
+  
+  // Additional context
+  metadata           Json      @default("{}") @db.JsonB
+
+  // Relations
+  userIdentity UserIdentity @relation(fields: [userIdentityId], references: [id], onDelete: Cascade)
+
+  @@index([userIdentityId])
+  @@index([deviceSessionId])
+  @@index([changeType])
+  @@index([detectedAt(sort: Desc)])
+  @@index([matchConfidence])
+  @@index([userIdentityId, detectedAt(sort: Desc)])
+  @@map("device_change_history")
+}
+
+model IdentityMatchingLog {
+  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  clientUuid           String?   @map("client_uuid") @db.VarChar(50)
+  userIdentityId       String?   @map("user_identity_id") @db.Uuid
+  
+  // Matching results
+  matchStatus          String    @map("match_status") @db.VarChar(50) // 'recognized', 'recovered', 'new', 'failed'
+  matchMethod          String?   @map("match_method") @db.VarChar(50) // 'uuid_direct', 'canvas_match', etc.
+  matchConfidence      Decimal?  @map("match_confidence") @db.Decimal(5, 4)
+  
+  // Device fingerprints used in matching
+  canvasFingerprint    String?   @map("canvas_fingerprint") @db.VarChar(64)
+  audioFingerprint     String?   @map("audio_fingerprint") @db.VarChar(64)
+  
+  // Performance metrics
+  processingTimeMs     Int?      @map("processing_time_ms")
+  candidatesEvaluated  Int?      @map("candidates_evaluated")
+  
+  // Request details
+  ipAddress            String?   @map("ip_address") @db.Inet
+  userAgent            String?   @map("user_agent") @db.Text
+  
+  // Timestamps
+  attemptedAt          DateTime  @default(now()) @map("attempted_at") @db.Timestamptz(6)
+  
+  // Additional context
+  metadata             Json      @default("{}") @db.JsonB
+
+  // Relations
+  userIdentity UserIdentity? @relation(fields: [userIdentityId], references: [id], onDelete: SetNull)
+
+  @@index([clientUuid])
+  @@index([userIdentityId])
+  @@index([matchStatus])
+  @@index([attemptedAt(sort: Desc)])
+  @@index([attemptedAt(sort: Desc), processingTimeMs])
+  @@map("identity_matching_logs")
+}
