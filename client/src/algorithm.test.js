@@ -270,37 +270,37 @@ class TestDataGenerator {
 
       let newSession;
       switch (changeType) {
-        case 'browser_update':
-          newSession = {
-            uuid: uuid,
-            device: this.simulateBrowserUpdate(currentDevice),
-            changeType: 'minor',
-          };
-          break;
+      case 'browser_update':
+        newSession = {
+          uuid: uuid,
+          device: this.simulateBrowserUpdate(currentDevice),
+          changeType: 'minor',
+        };
+        break;
 
-        case 'resolution_change':
-          newSession = {
-            uuid: uuid,
-            device: this.simulateResolutionChange(currentDevice),
-            changeType: 'minor',
-          };
-          break;
+      case 'resolution_change':
+        newSession = {
+          uuid: uuid,
+          device: this.simulateResolutionChange(currentDevice),
+          changeType: 'minor',
+        };
+        break;
 
-        case 'plugin_change':
-          newSession = {
-            uuid: uuid,
-            device: this.simulatePluginChange(currentDevice),
-            changeType: 'minor',
-          };
-          break;
+      case 'plugin_change':
+        newSession = {
+          uuid: uuid,
+          device: this.simulatePluginChange(currentDevice),
+          changeType: 'minor',
+        };
+        break;
 
-        case 'same':
-          newSession = {
-            uuid: uuid,
-            device: { ...currentDevice, collectedAt: new Date().toISOString() },
-            changeType: 'none',
-          };
-          break;
+      case 'same':
+        newSession = {
+          uuid: uuid,
+          device: { ...currentDevice, collectedAt: new Date().toISOString() },
+          changeType: 'none',
+        };
+        break;
       }
 
       sessions.push(newSession);
