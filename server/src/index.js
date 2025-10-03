@@ -9,6 +9,7 @@ import compression from 'compression';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import apiRoutes from './api/routes.js';
+import adminRoutes from './api/admin-routes.js';
 
 // Load environment variables
 dotenv.config();
@@ -79,6 +80,9 @@ app.use(`${API_PREFIX}/identify`, identifyLimiter);
 // Mount API routes
 app.use(API_PREFIX, apiRoutes);
 
+// Mount admin routes
+app.use(`${API_PREFIX}/admin`, adminRoutes);
+
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
@@ -92,6 +96,12 @@ app.get('/', (req, res) => {
       deviceHistory: `${API_PREFIX}/users/:userId/device-history`,
       userStatistics: `${API_PREFIX}/users/:userId/statistics`,
       compareDevices: `${API_PREFIX}/devices/compare`,
+      admin: {
+        users: `${API_PREFIX}/admin/users`,
+        uuids: `${API_PREFIX}/admin/uuids`,
+        settings: `${API_PREFIX}/admin/settings`,
+        userProfile: `${API_PREFIX}/admin/users/:userId/profile`,
+      },
     },
   });
 });
@@ -133,6 +143,14 @@ app.listen(PORT, HOST, () => {
   console.log(`  GET  ${API_PREFIX}/users/:userId/device-history - Device history`);
   console.log(`  GET  ${API_PREFIX}/users/:userId/statistics - User statistics`);
   console.log(`  POST ${API_PREFIX}/devices/compare - Compare devices`);
+  console.log('\nAdmin endpoints (require X-User-ID header with admin role):');
+  console.log(`  GET  ${API_PREFIX}/admin/users - List all users`);
+  console.log(`  GET  ${API_PREFIX}/admin/uuids - List all UUIDs`);
+  console.log(`  GET  ${API_PREFIX}/admin/users/:userId/profile - User profile`);
+  console.log(`  PATCH ${API_PREFIX}/admin/users/:userId - Update user`);
+  console.log(`  DELETE ${API_PREFIX}/admin/uuids/:uuid - Delete UUID`);
+  console.log(`  GET  ${API_PREFIX}/admin/settings - Get settings`);
+  console.log(`  PATCH ${API_PREFIX}/admin/settings/:key - Update setting`);
   console.log('='.repeat(60));
 });
 
