@@ -124,12 +124,12 @@ router.post('/devices/compare', async (req, res) => {
     
     const device1Result = await query(
       'SELECT * FROM user_device_profiles WHERE device_session_id = $1',
-      [session_id_1]
+      [session_id_1],
     );
 
     const device2Result = await query(
       'SELECT * FROM user_device_profiles WHERE device_session_id = $2',
-      [session_id_2]
+      [session_id_2],
     );
 
     if (device1Result.rows.length === 0 || device2Result.rows.length === 0) {

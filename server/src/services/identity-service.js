@@ -30,7 +30,7 @@ export class IdentityService {
           const newSession = await this._createDeviceSession(
             uuidMatch.user_identity_id,
             clientUUID,
-            deviceInfo
+            deviceInfo,
           );
           
           // Record change history
@@ -38,7 +38,7 @@ export class IdentityService {
             uuidMatch.user_identity_id,
             newSession.device_session_id,
             uuidMatch.device_session_id,
-            changeDetection
+            changeDetection,
           );
 
           // Update user last seen
@@ -79,7 +79,7 @@ export class IdentityService {
         const newSession = await this._createDeviceSession(
           fingerprintMatch.user_identity_id,
           clientUUID,
-          deviceInfo
+          deviceInfo,
         );
 
         await this._recordDeviceChange(
@@ -90,7 +90,7 @@ export class IdentityService {
             changeType: 'device_reset',
             changedFields: ['client_uuid'],
             confidence: fingerprintMatch.confidence,
-          }
+          },
         );
 
         await this._updateUserLastSeen(fingerprintMatch.user_identity_id);
@@ -160,7 +160,7 @@ export class IdentityService {
       WHERE udp.client_uuid = $1 AND udp.is_current = true
       ORDER BY udp.last_seen_at DESC
       LIMIT 1`,
-      [clientUUID]
+      [clientUUID],
     );
 
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -200,7 +200,7 @@ export class IdentityService {
         AND ui.is_active = true
       ORDER BY udp.last_seen_at DESC
       LIMIT 10`,
-      [canvasHash, audioHash]
+      [canvasHash, audioHash],
     );
 
     if (exactMatch.rows.length === 0) {
@@ -254,7 +254,7 @@ export class IdentityService {
       const userResult = await client.query(
         `INSERT INTO user_identities (total_sessions, total_devices)
          VALUES (1, 1)
-         RETURNING id, user_identity_id`
+         RETURNING id, user_identity_id`,
       );
 
       const userId = userResult.rows[0].id;
@@ -302,7 +302,7 @@ export class IdentityService {
           deviceProfile.webgl_vendor,
           deviceProfile.webgl_renderer,
           JSON.stringify(deviceInfo),
-        ]
+        ],
       );
 
       // Record initial device change
@@ -322,7 +322,7 @@ export class IdentityService {
           'Initial user registration',
           1.0,
           'new_user',
-        ]
+        ],
       );
 
       await client.query('COMMIT');
@@ -351,7 +351,7 @@ export class IdentityService {
       `UPDATE user_device_profiles 
        SET is_current = false 
        WHERE user_identity_id = (SELECT id FROM user_identities WHERE user_identity_id = $1)`,
-      [userId]
+      [userId],
     );
 
     const result = await query(
@@ -395,7 +395,7 @@ export class IdentityService {
         deviceProfile.webgl_vendor,
         deviceProfile.webgl_renderer,
         JSON.stringify(deviceInfo),
-      ]
+      ],
     );
 
     // Update user statistics
@@ -404,7 +404,7 @@ export class IdentityService {
        SET total_sessions = total_sessions + 1,
            total_devices = (SELECT COUNT(DISTINCT device_session_id) FROM user_device_profiles WHERE user_identity_id = id)
        WHERE user_identity_id = $1`,
-      [userId]
+      [userId],
     );
 
     return {
@@ -422,7 +422,7 @@ export class IdentityService {
            visit_count = visit_count + 1,
            device_info_raw = $2
        WHERE device_session_id = $1`,
-      [sessionId, JSON.stringify(deviceInfo)]
+      [sessionId, JSON.stringify(deviceInfo)],
     );
   }
 
@@ -434,7 +434,7 @@ export class IdentityService {
       `UPDATE user_identities 
        SET last_seen_at = CURRENT_TIMESTAMP 
        WHERE user_identity_id = $1`,
-      [userId]
+      [userId],
     );
   }
 
@@ -461,7 +461,7 @@ export class IdentityService {
         `Device ${changeDetection.changeType} detected: ${changeDetection.changeCategory}`,
         changeDetection.confidence,
         'device_change',
-      ]
+      ],
     );
   }
 
@@ -491,7 +491,7 @@ export class IdentityService {
         processingTime,
         deviceInfo.userAgent,
         null, // IP address would be extracted from request in real implementation
-      ]
+      ],
     );
   }
 
@@ -569,7 +569,7 @@ export class IdentityService {
       ${whereClause}
       ORDER BY dch.detected_at DESC
       LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`,
-      [...params, perPage, offset]
+      [...params, perPage, offset],
     );
 
     const countResult = await query(
@@ -577,7 +577,7 @@ export class IdentityService {
        FROM device_change_history dch
        JOIN user_identities ui ON dch.user_identity_id = ui.id
        ${whereClause}`,
-      params
+      params,
     );
 
     return {
@@ -596,8 +596,8 @@ export class IdentityService {
    */
   async getUserStatistics(userId) {
     const result = await query(
-      `SELECT * FROM v_user_statistics WHERE user_identity_id = $1`,
-      [userId]
+      'SELECT * FROM v_user_statistics WHERE user_identity_id = $1',
+      [userId],
     );
 
     return result.rows[0] || null;
