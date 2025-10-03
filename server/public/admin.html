@@ -257,15 +257,18 @@
                 <div id="registerForm" style="display: none;">
                     <div class="form-group">
                         <label for="regUsername">Username:</label>
-                        <input type="text" id="regUsername" placeholder="Enter username (3-50 characters)">
+                        <input type="text" id="regUsername" placeholder="Enter username (3-50 characters)" 
+                               minlength="3" maxlength="50">
                     </div>
                     <div class="form-group">
                         <label for="regPassword">Password:</label>
-                        <input type="password" id="regPassword" placeholder="Enter password (min 8 characters)">
+                        <input type="password" id="regPassword" placeholder="Enter password (min 8 characters)" 
+                               minlength="8">
                     </div>
                     <div class="form-group">
                         <label for="regPasswordConfirm">Confirm Password:</label>
-                        <input type="password" id="regPasswordConfirm" placeholder="Re-enter password">
+                        <input type="password" id="regPasswordConfirm" placeholder="Re-enter password" 
+                               minlength="8">
                     </div>
                     <button class="btn" onclick="register()">Register Admin</button>
                     <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px;">
@@ -733,6 +736,25 @@
             } else {
                 checkAuthStatus();
             }
+            
+            // Add Enter key support for login form
+            document.getElementById('username')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+            document.getElementById('password')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+            
+            // Add Enter key support for registration form
+            document.getElementById('regUsername')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') register();
+            });
+            document.getElementById('regPassword')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') register();
+            });
+            document.getElementById('regPasswordConfirm')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') register();
+            });
         });
     </script>
 </body>
