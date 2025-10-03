@@ -250,6 +250,20 @@ export class IdentityService {
     try {
       await client.query('BEGIN');
 
+      // Check if registration is enabled
+      const settingResult = await client.query(
+        'SELECT setting_value FROM system_settings WHERE setting_key = $1',
+        ['registration_enabled'],
+      );
+      
+      if (settingResult.rows.length > 0) {
+        const registrationEnabled = settingResult.rows[0].setting_value;
+        if (registrationEnabled === false || registrationEnabled === 'false') {
+          await client.query('ROLLBACK');
+          throw new Error('Registration is disabled');
+        }
+      }
+
       // Create user identity
       const userResult = await client.query(
         `INSERT INTO user_identities (total_sessions, total_devices)
