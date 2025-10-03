@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import apiRoutes from './api/routes.js';
 import adminRoutes from './api/admin-routes.js';
+import adminAuthRoutes from './api/admin-auth-routes.js';
 import { runMigrations } from './utils/migrate.js';
 
 // Load environment variables
@@ -83,6 +84,9 @@ app.use(`${API_PREFIX}/identify`, identifyLimiter);
 
 // Mount API routes
 app.use(API_PREFIX, apiRoutes);
+
+// Mount admin auth routes
+app.use(`${API_PREFIX}/admin/auth`, adminAuthRoutes);
 
 // Mount admin routes
 app.use(`${API_PREFIX}/admin`, adminRoutes);

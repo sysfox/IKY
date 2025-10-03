@@ -249,17 +249,50 @@
         
         <!-- Login Panel -->
         <div id="loginPanel" class="panel">
-            <h2>Admin Login</h2>
+            <h2 id="loginTitle">Admin Login</h2>
             <div class="login-form">
                 <div id="loginAlert" class="alert alert-error"></div>
-                <div class="form-group">
-                    <label for="adminUserId">Admin User ID:</label>
-                    <input type="text" id="adminUserId" placeholder="Enter your admin user ID (e.g., usr_xxxxx)">
+                
+                <!-- Registration Form (shown only when no admin exists) -->
+                <div id="registerForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="regUsername">Username:</label>
+                        <input type="text" id="regUsername" placeholder="Enter username (3-50 characters)">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password:</label>
+                        <input type="password" id="regPassword" placeholder="Enter password (min 8 characters)">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPasswordConfirm">Confirm Password:</label>
+                        <input type="password" id="regPasswordConfirm" placeholder="Re-enter password">
+                    </div>
+                    <button class="btn" onclick="register()">Register Admin</button>
+                    <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px;">
+                        <p style="font-size: 14px; color: #666;">
+                            <strong>First-time setup:</strong> Create your admin account with a username and password.
+                        </p>
+                    </div>
                 </div>
-                <button class="btn" onclick="login()">Login</button>
-                <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px;">
+                
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" placeholder="Enter your username">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" placeholder="Enter your password">
+                    </div>
+                    <button class="btn" onclick="login()">Login</button>
+                </div>
+                
+                <!-- Legacy login note -->
+                <div id="legacyNote" style="display: none; margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 5px;">
                     <p style="font-size: 14px; color: #666;">
-                        <strong>First time?</strong> The first user registered via the <code>/api/v1/identify</code> endpoint automatically becomes an admin.
+                        <strong>Legacy users:</strong> If you registered via the <code>/api/v1/identify</code> endpoint, 
+                        you can still use your user ID in the admin panel, but we recommend setting up username/password authentication.
                     </p>
                 </div>
             </div>
@@ -268,7 +301,10 @@
         <!-- Admin Dashboard -->
         <div id="adminPanel" class="hidden">
             <div class="panel">
-                <h2>Dashboard</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Dashboard</h2>
+                    <button class="btn btn-small" onclick="logout()" style="width: auto; padding: 8px 20px;">Logout</button>
+                </div>
                 <div id="dashboardAlert" class="alert alert-error"></div>
                 <div class="stats">
                     <div class="stat-card">
@@ -347,7 +383,7 @@
     </div>
     
     <script>
-        let adminUserId = null;
+        let sessionToken = null;
         const API_BASE = window.location.origin + '/api/v1';
         
         function showAlert(elementId, message, type = 'error') {
@@ -360,36 +396,125 @@
             }, 5000);
         }
         
-        async function login() {
-            const userId = document.getElementById('adminUserId').value.trim();
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/auth/status`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.data.requiresSetup) {
+                        // Show registration form
+                        document.getElementById('loginTitle').textContent = 'Admin Registration';
+                        document.getElementById('loginForm').style.display = 'none';
+                        document.getElementById('registerForm').style.display = 'block';
+                    } else {
+                        // Show login form
+                        document.getElementById('loginTitle').textContent = 'Admin Login';
+                        document.getElementById('loginForm').style.display = 'block';
+                        document.getElementById('registerForm').style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to check auth status:', error);
+            }
+        }
+        
+        async function register() {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const passwordConfirm = document.getElementById('regPasswordConfirm').value;
             
-            if (!userId) {
-                showAlert('loginAlert', 'Please enter your admin user ID');
+            if (!username || !password || !passwordConfirm) {
+                showAlert('loginAlert', 'Please fill in all fields');
+                return;
+            }
+            
+            if (password !== passwordConfirm) {
+                showAlert('loginAlert', 'Passwords do not match');
                 return;
             }
             
             try {
-                // Verify admin status
-                const response = await fetch(`${API_BASE}/admin/users`, {
+                const response = await fetch(`${API_BASE}/admin/auth/register`, {
+                    method: 'POST',
                     headers: {
-                        'X-User-ID': userId
-                    }
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
                 });
                 
+                const data = await response.json();
+                
                 if (response.ok) {
-                    adminUserId = userId;
-                    localStorage.setItem('adminUserId', userId);
-                    document.getElementById('loginPanel').classList.add('hidden');
-                    document.getElementById('adminPanel').classList.remove('hidden');
-                    loadDashboard();
-                } else if (response.status === 403) {
-                    showAlert('loginAlert', 'Access denied. This user is not an admin.');
+                    showAlert('loginAlert', 'Registration successful! Please login.', 'success');
+                    // Switch to login form
+                    setTimeout(() => {
+                        document.getElementById('loginTitle').textContent = 'Admin Login';
+                        document.getElementById('registerForm').style.display = 'none';
+                        document.getElementById('loginForm').style.display = 'block';
+                        document.getElementById('username').value = username;
+                    }, 1500);
                 } else {
-                    showAlert('loginAlert', 'Invalid user ID or server error.');
+                    showAlert('loginAlert', data.error || 'Registration failed');
                 }
             } catch (error) {
                 showAlert('loginAlert', 'Failed to connect to server: ' + error.message);
             }
+        }
+        
+        async function login() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showAlert('loginAlert', 'Please enter your username and password');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    sessionToken = data.data.sessionToken;
+                    localStorage.setItem('adminSessionToken', sessionToken);
+                    document.getElementById('loginPanel').classList.add('hidden');
+                    document.getElementById('adminPanel').classList.remove('hidden');
+                    loadDashboard();
+                } else {
+                    showAlert('loginAlert', data.error || 'Login failed');
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Failed to connect to server: ' + error.message);
+            }
+        }
+        
+        async function logout() {
+            try {
+                if (sessionToken) {
+                    await fetch(`${API_BASE}/admin/auth/logout`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Session-Token': sessionToken
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+            
+            sessionToken = null;
+            localStorage.removeItem('adminSessionToken');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('loginPanel').classList.remove('hidden');
+            checkAuthStatus();
         }
         
         async function loadDashboard() {
@@ -405,10 +530,10 @@
             try {
                 const [usersRes, uuidsRes] = await Promise.all([
                     fetch(`${API_BASE}/admin/users?per_page=1`, {
-                        headers: { 'X-User-ID': adminUserId }
+                        headers: { 'X-Session-Token': sessionToken }
                     }),
                     fetch(`${API_BASE}/admin/uuids?per_page=1`, {
-                        headers: { 'X-User-ID': adminUserId }
+                        headers: { 'X-Session-Token': sessionToken }
                     })
                 ]);
                 
@@ -427,7 +552,7 @@
         async function loadSettings() {
             try {
                 const response = await fetch(`${API_BASE}/admin/settings`, {
-                    headers: { 'X-User-ID': adminUserId }
+                    headers: { 'X-Session-Token': sessionToken }
                 });
                 
                 if (response.ok) {
@@ -468,7 +593,7 @@
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-User-ID': adminUserId
+                        'X-Session-Token': sessionToken
                     },
                     body: JSON.stringify({ value: newState })
                 });
@@ -487,7 +612,7 @@
         async function loadUsers() {
             try {
                 const response = await fetch(`${API_BASE}/admin/users?per_page=50`, {
-                    headers: { 'X-User-ID': adminUserId }
+                    headers: { 'X-Session-Token': sessionToken }
                 });
                 
                 if (response.ok) {
@@ -521,7 +646,7 @@
         async function loadUuids() {
             try {
                 const response = await fetch(`${API_BASE}/admin/uuids?per_page=50`, {
-                    headers: { 'X-User-ID': adminUserId }
+                    headers: { 'X-Session-Token': sessionToken }
                 });
                 
                 if (response.ok) {
@@ -561,7 +686,7 @@
             try {
                 const response = await fetch(`${API_BASE}/admin/uuids/${uuid}`, {
                     method: 'DELETE',
-                    headers: { 'X-User-ID': adminUserId }
+                    headers: { 'X-Session-Token': sessionToken }
                 });
                 
                 if (response.ok) {
@@ -576,12 +701,37 @@
             }
         }
         
-        // Auto-login if stored
-        window.addEventListener('load', () => {
-            const storedUserId = localStorage.getItem('adminUserId');
-            if (storedUserId) {
-                document.getElementById('adminUserId').value = storedUserId;
-                login();
+        // Auto-login if stored session
+        window.addEventListener('load', async () => {
+            const storedToken = localStorage.getItem('adminSessionToken');
+            if (storedToken) {
+                sessionToken = storedToken;
+                // Verify the session is still valid
+                try {
+                    const response = await fetch(`${API_BASE}/admin/auth/status`, {
+                        headers: { 'X-Session-Token': sessionToken }
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success && data.data.sessionValid) {
+                        // Session is valid, go to dashboard
+                        document.getElementById('loginPanel').classList.add('hidden');
+                        document.getElementById('adminPanel').classList.remove('hidden');
+                        loadDashboard();
+                    } else {
+                        // Session expired, clear it
+                        localStorage.removeItem('adminSessionToken');
+                        sessionToken = null;
+                        checkAuthStatus();
+                    }
+                } catch (error) {
+                    console.error('Auto-login failed:', error);
+                    localStorage.removeItem('adminSessionToken');
+                    sessionToken = null;
+                    checkAuthStatus();
+                }
+            } else {
+                checkAuthStatus();
             }
         });
     </script>
