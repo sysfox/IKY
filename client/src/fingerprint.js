@@ -278,7 +278,7 @@ export class DeviceFingerprint {
       'Arial', 'Verdana', 'Times New Roman', 'Courier New', 'Georgia',
       'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 'Trebuchet MS',
       'Impact', 'Lucida Console', 'Tahoma', 'Helvetica', 'Geneva',
-      'MS Sans Serif', 'MS Serif', 'Courier', 'Monaco', 'Consolas'
+      'MS Sans Serif', 'MS Serif', 'Courier', 'Monaco', 'Consolas',
     ];
 
     const detectedFonts = [];

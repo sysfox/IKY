@@ -86,7 +86,7 @@ export class APIClient {
    */
   async compareDevices(sessionId1, sessionId2) {
     try {
-      const response = await this._fetch(`/devices/compare`, {
+      const response = await this._fetch('/devices/compare', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
