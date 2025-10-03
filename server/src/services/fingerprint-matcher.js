@@ -3,7 +3,7 @@
  */
 
 export class FingerprintMatcher {
-  constructor(options = {}) {
+  constructor() {
     // Matching weights (should sum to 1.0)
     this.weights = {
       canvas: parseFloat(process.env.FINGERPRINT_WEIGHT_CANVAS || '0.30'),
@@ -26,31 +26,31 @@ export class FingerprintMatcher {
     // Canvas fingerprint matching (exact match)
     scores.canvas = this._compareExact(
       device1.canvas_fingerprint,
-      device2.canvas_fingerprint
+      device2.canvas_fingerprint,
     ) * this.weights.canvas;
 
     // Audio fingerprint matching (exact match)
     scores.audio = this._compareExact(
       device1.audio_fingerprint,
-      device2.audio_fingerprint
+      device2.audio_fingerprint,
     ) * this.weights.audio;
 
     // Hardware matching
     scores.hardware = this._compareHardware(
       device1,
-      device2
+      device2,
     ) * this.weights.hardware;
 
     // Screen matching
     scores.screen = this._compareScreen(
       device1,
-      device2
+      device2,
     ) * this.weights.screen;
 
     // Font list matching
     scores.fonts = this._compareFonts(
       device1.fonts_list,
-      device2.fonts_list
+      device2.fonts_list,
     ) * this.weights.fonts;
 
     totalScore = Object.values(scores).reduce((sum, score) => sum + score, 0);

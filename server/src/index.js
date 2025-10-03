@@ -22,16 +22,16 @@ const API_PREFIX = process.env.API_PREFIX || '/api/v1';
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", 'data:', 'https:'],
+      defaultSrc: ['\'self\''],
+      styleSrc: ['\'self\'', '\'unsafe-inline\''],
+      scriptSrc: ['\'self\''],
+      imgSrc: ['\'self\'', 'data:', 'https:'],
     },
   },
   hsts: {
     maxAge: 31536000,
     includeSubDomains: true,
-    preload: true
+    preload: true,
   },
 }));
 
@@ -56,7 +56,7 @@ app.use(API_PREFIX, limiter);
 app.use(cors({ 
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 }));
 
 app.use(compression()); // Response compression
@@ -106,7 +106,7 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
     success: false,
@@ -127,7 +127,7 @@ app.listen(PORT, HOST, () => {
   console.log(`⚡ Node.js: ${process.version}`);
   console.log('='.repeat(60));
   console.log('\nAvailable endpoints:');
-  console.log(`  GET  / - API information`);
+  console.log('  GET  / - API information');
   console.log(`  GET  ${API_PREFIX}/health - Health check`);
   console.log(`  POST ${API_PREFIX}/identify - User identification (rate limited)`);
   console.log(`  GET  ${API_PREFIX}/users/:userId/device-history - Device history`);
