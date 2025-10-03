@@ -53,7 +53,7 @@ async function getAppliedMigrations() {
 async function recordMigration(migrationName) {
   await query(
     'INSERT INTO schema_migrations (migration_name) VALUES ($1) ON CONFLICT (migration_name) DO NOTHING',
-    [migrationName]
+    [migrationName],
   );
 }
 
@@ -123,7 +123,7 @@ export async function runMigrations() {
     
     // Run pending migrations
     const pendingMigrations = migrationFiles.filter(
-      f => !appliedMigrations.includes(f)
+      f => !appliedMigrations.includes(f),
     );
     
     if (pendingMigrations.length === 0) {
