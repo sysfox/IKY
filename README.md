@@ -170,6 +170,7 @@ createdb iky
 # Run migrations
 cd ../database
 psql iky < migrations/001_initial_schema.sql
+psql iky < migrations/002_add_admin_and_registration_control.sql
 ```
 
 5. Configure environment:
@@ -185,6 +186,8 @@ cp server/.env.example server/.env
 # Start server
 cd server && pnpm start
 ```
+
+7. Create first admin user (see [Admin Setup Guide](docs/ADMIN_SETUP.md))
 
 ## Usage
 
@@ -267,6 +270,16 @@ Identify or create user based on client UUID and device fingerprint.
 - Historical change tracking
 - Change classification (minor/major/reset)
 - Timeline visualization
+
+### Admin Panel
+- **First user becomes admin** - Automatic admin role assignment
+- **Registration control** - Auto-disable after first user
+- **UUID management** - List, view, and delete client UUIDs
+- **User profile generation** - Comprehensive user analytics
+- **Role management** - Promote/demote users
+- **System settings** - Global configuration control
+
+See [Admin Setup Guide](docs/ADMIN_SETUP.md) and [Admin API Documentation](docs/ADMIN_API.md) for details.
 
 ### Dashboard
 - Device history timeline

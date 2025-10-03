@@ -3,7 +3,6 @@
  * Note: These are integration-style tests that would require a test database setup
  * Skipping for now to focus on core functionality
  */
-import { jest } from '@jest/globals';
 
 describe('Admin Middleware', () => {
   describe('isAdmin', () => {
