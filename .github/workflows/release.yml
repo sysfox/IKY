@@ -1,0 +1,160 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8.15.0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+          cache-dependency-path: |
+            client/pnpm-lock.yaml
+            server/pnpm-lock.yaml
+      
+      - name: Generate timestamp tag
+        id: timestamp
+        run: |
+          TAG=$(date +'%Y%m%d%H%M')
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Release tag will be: ${TAG}"
+      
+      - name: Install client dependencies
+        run: |
+          cd client
+          pnpm install --frozen-lockfile
+      
+      - name: Build client
+        run: |
+          cd client
+          pnpm run build
+      
+      - name: Install server dependencies
+        run: |
+          cd server
+          pnpm install --frozen-lockfile --prod
+      
+      - name: Package client artifact
+        run: |
+          cd client
+          tar -czf ../iky-client-${{ steps.timestamp.outputs.tag }}.tar.gz \
+            dist/ \
+            package.json \
+            README.md \
+            LICENSE
+      
+      - name: Package server artifact
+        run: |
+          cd server
+          tar -czf ../iky-server-${{ steps.timestamp.outputs.tag }}.tar.gz \
+            src/ \
+            node_modules/ \
+            package.json \
+            .env.example \
+            README.md \
+            LICENSE
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.timestamp.outputs.tag }}
+          release_name: Release ${{ steps.timestamp.outputs.tag }}
+          body: |
+            ## IKY Release ${{ steps.timestamp.outputs.tag }}
+            
+            **Build Date**: ${{ github.event.head_commit.timestamp }}
+            **Commit**: ${{ github.sha }}
+            
+            ### Changes
+            ${{ github.event.head_commit.message }}
+            
+            ### Artifacts
+            - `iky-client-${{ steps.timestamp.outputs.tag }}.tar.gz` - Client library build
+            - `iky-server-${{ steps.timestamp.outputs.tag }}.tar.gz` - Server application
+            - Docker images available with tag `${{ steps.timestamp.outputs.tag }}`
+            
+            ### Installation
+            
+            #### Using tarball:
+            ```bash
+            # Extract client
+            tar -xzf iky-client-${{ steps.timestamp.outputs.tag }}.tar.gz
+            
+            # Extract server
+            tar -xzf iky-server-${{ steps.timestamp.outputs.tag }}.tar.gz
+            ```
+            
+            #### Using Docker:
+            ```bash
+            docker pull ghcr.io/${{ github.repository_owner }}/iky-server:${{ steps.timestamp.outputs.tag }}
+            ```
+          draft: false
+          prerelease: false
+      
+      - name: Upload client artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./iky-client-${{ steps.timestamp.outputs.tag }}.tar.gz
+          asset_name: iky-client-${{ steps.timestamp.outputs.tag }}.tar.gz
+          asset_content_type: application/gzip
+      
+      - name: Upload server artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./iky-server-${{ steps.timestamp.outputs.tag }}.tar.gz
+          asset_name: iky-server-${{ steps.timestamp.outputs.tag }}.tar.gz
+          asset_content_type: application/gzip
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/iky-server:${{ steps.timestamp.outputs.tag }}
+            ghcr.io/${{ github.repository_owner }}/iky-server:latest
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

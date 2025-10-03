@@ -26,10 +26,33 @@ The system achieves precise user identification and device change tracking throu
 ### Prerequisites
 - **Node.js >= 22.0.0** (Required)
 - **pnpm >= 8.0.0** (Package manager)
-- PostgreSQL >= 13.x
+- PostgreSQL >= 13.x (or use Docker)
 - Basic knowledge of JavaScript
 
-### Installation
+### Option 1: Docker Deployment (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/sysfox/Hey-INY.git
+cd Hey-INY
+
+# Create environment file
+cp .env.docker.example .env
+# Edit .env and set your database password
+
+# Start services with Docker Compose
+docker-compose up -d
+
+# Check status
+docker-compose ps
+
+# Test the API
+curl http://localhost:3000/api/v1/health
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker deployment instructions.
+
+### Option 2: Traditional Installation
 
 ```bash
 # Clone the repository
@@ -275,6 +298,23 @@ DEVICE_CHANGE_THRESHOLD=0.5
 
 ## Development
 
+### Database Management with Prisma
+
+IKY includes Prisma ORM for type-safe database access:
+
+```bash
+# Generate Prisma Client
+cd server && pnpm run prisma:generate
+
+# Open Prisma Studio (visual database browser)
+pnpm run prisma:studio
+
+# Create a migration
+pnpm run prisma:migrate
+```
+
+See [server/PRISMA.md](server/PRISMA.md) for detailed Prisma usage.
+
 ### Running Tests
 ```bash
 # Server tests
@@ -289,8 +329,21 @@ cd client && pnpm test
 # Build client library
 cd client && pnpm run build
 
-# Build server
-cd server && pnpm run build
+# Server runs directly from source
+cd server && pnpm start
+```
+
+### Docker Development
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+
+# View logs
+docker-compose logs -f server
+
+# Rebuild after changes
+docker-compose up -d --build server
 ```
 
 ## Security Features
@@ -321,6 +374,23 @@ Automated testing and deployment:
 - ✅ Database integration tests
 - ✅ Coverage reporting
 - ✅ Automated builds
+- ✅ Docker image building and publishing
+- ✅ Automatic release creation with timestamp tags
+- ✅ Multi-platform Docker support (linux/amd64, linux/arm64)
+
+### Releases
+
+On every successful build to `main`, a new release is automatically created with:
+- Timestamp-based tag (e.g., `202510031541`)
+- Client and server artifacts (tar.gz)
+- Docker images published to GitHub Container Registry
+- Automatic release notes with changes
+
+Pull Docker images:
+```bash
+docker pull ghcr.io/sysfox/iky-server:latest
+docker pull ghcr.io/sysfox/iky-server:202510031541
+```
 
 ## Security Considerations
 
