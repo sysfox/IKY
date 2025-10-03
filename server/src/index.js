@@ -105,6 +105,12 @@ app.get('/', (req, res) => {
       deviceHistory: `${API_PREFIX}/users/:userId/device-history`,
       userStatistics: `${API_PREFIX}/users/:userId/statistics`,
       compareDevices: `${API_PREFIX}/devices/compare`,
+      adminAuth: {
+        register: `${API_PREFIX}/admin/auth/register`,
+        login: `${API_PREFIX}/admin/auth/login`,
+        logout: `${API_PREFIX}/admin/auth/logout`,
+        status: `${API_PREFIX}/admin/auth/status`,
+      },
       admin: {
         users: `${API_PREFIX}/admin/users`,
         uuids: `${API_PREFIX}/admin/uuids`,
@@ -158,7 +164,12 @@ const startServer = async () => {
       console.log(`  GET  ${API_PREFIX}/users/:userId/device-history - Device history`);
       console.log(`  GET  ${API_PREFIX}/users/:userId/statistics - User statistics`);
       console.log(`  POST ${API_PREFIX}/devices/compare - Compare devices`);
-      console.log('\nAdmin endpoints (require X-User-ID header with admin role):');
+      console.log('\nAdmin authentication endpoints:');
+      console.log(`  POST ${API_PREFIX}/admin/auth/register - Register admin`);
+      console.log(`  POST ${API_PREFIX}/admin/auth/login - Login admin`);
+      console.log(`  POST ${API_PREFIX}/admin/auth/logout - Logout admin`);
+      console.log(`  GET  ${API_PREFIX}/admin/auth/status - Check auth status`);
+      console.log('\nAdmin endpoints (require X-Session-Token header):');
       console.log(`  GET  ${API_PREFIX}/admin/users - List all users`);
       console.log(`  GET  ${API_PREFIX}/admin/uuids - List all UUIDs`);
       console.log(`  GET  ${API_PREFIX}/admin/users/:userId/profile - User profile`);

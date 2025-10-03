@@ -70,7 +70,12 @@ The admin panel provides:
 - Registration control (enable/disable)
 - Real-time monitoring
 
-**First-time Setup**: The first user registered via `/api/v1/identify` automatically becomes an admin.
+**Admin Authentication**: The system now supports username/password authentication for admins:
+1. **First-time Setup**: When no admin exists, visit `/admin.html` and create an admin account with a username and password
+2. **Login**: Use your username and password to login to the admin panel
+3. **Session Management**: Sessions are valid for 24 hours and stored securely
+
+**Legacy Support**: The system still supports the old method where the first user registered via `/api/v1/identify` automatically becomes an admin. However, we recommend using the new username/password authentication for better security.
 
 ## 🔧 Configuration
 
@@ -91,13 +96,23 @@ See `.env.docker.example` for all available environment variables.
 - `GET /api/v1/users/:userId/device-history` - Device history
 - `GET /api/v1/users/:userId/statistics` - User statistics
 
-### Admin Endpoints (require X-User-ID header with admin role)
+### Admin Authentication Endpoints
+
+- `POST /api/v1/admin/auth/register` - Register the first admin (only allowed when no admin exists)
+- `POST /api/v1/admin/auth/login` - Login with username/password
+- `POST /api/v1/admin/auth/logout` - Logout (invalidate session)
+- `GET /api/v1/admin/auth/status` - Check authentication status
+- `POST /api/v1/admin/auth/change-password` - Change admin password
+
+### Admin Management Endpoints (require X-Session-Token header)
 
 - `GET /api/v1/admin/users` - List all users
 - `GET /api/v1/admin/uuids` - List all UUIDs
 - `GET /api/v1/admin/users/:userId/profile` - User profile
 - `DELETE /api/v1/admin/uuids/:uuid` - Delete UUID
 - `PATCH /api/v1/admin/settings/:key` - Update settings
+
+**Note**: Admin endpoints also support legacy authentication via `X-User-ID` header for backward compatibility.
 
 ## 🏗️ Architecture
 
