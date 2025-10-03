@@ -2,6 +2,13 @@
 
 This guide explains how to deploy IKY using Docker and Docker Compose.
 
+## Prerequisites
+
+- Docker and Docker Compose installed
+- **External PostgreSQL database** (13+)
+  - You need to provide your own PostgreSQL instance
+  - The application does NOT include a built-in database
+
 ## Quick Start with Docker Compose
 
 1. **Clone the repository**:
@@ -13,13 +20,28 @@ This guide explains how to deploy IKY using Docker and Docker Compose.
 2. **Create environment file**:
    ```bash
    cp .env.docker.example .env
-   # Edit .env and set your database password
+   nano .env
+   ```
+   
+   Configure your external PostgreSQL database:
+   ```bash
+   DB_HOST=your_postgres_host    # e.g., localhost or postgres.example.com
+   DB_NAME=iky
+   DB_USER=iky_user
+   DB_PASSWORD=your_secure_password
+   DB_PORT=5432
+   PORT=3010
    ```
 
-3. **Start the services**:
+3. **Start the service**:
    ```bash
    docker-compose up -d
    ```
+   
+   The server will:
+   - Automatically run database migrations on startup
+   - Connect to your external PostgreSQL database
+   - Expose the API on port 3010
 
 4. **Check status**:
    ```bash
@@ -29,7 +51,13 @@ This guide explains how to deploy IKY using Docker and Docker Compose.
 
 5. **Test the API**:
    ```bash
-   curl http://localhost:3000/api/v1/health
+   curl http://localhost:3010/api/v1/health
+   ```
+
+6. **Access Admin Panel**:
+   ```bash
+   # Open in browser
+   http://localhost:3010/admin.html
    ```
 
 ## Using Pre-built Docker Images
@@ -45,8 +73,8 @@ docker pull ghcr.io/sysfox/iky-server:202510031541
 
 # Run the container
 docker run -d \
-  -p 3000:3000 \
-  -e DB_HOST=your_db_host \
+  -p 3010:3010 \
+  -e DB_HOST=your_postgres_host \
   -e DB_NAME=iky \
   -e DB_USER=iky_user \
   -e DB_PASSWORD=your_password \
@@ -63,15 +91,15 @@ cd server
 docker build -t iky-server:local .
 ```
 
-**Note**: The Dockerfile uses `npm ci` for compatibility. While the project uses `pnpm` for development, npm is used in Docker builds for better compatibility across different environments. The `package-lock.json` file ensures consistent dependency versions.
+**Note**: The Dockerfile uses `npm ci` for compatibility. While the project uses `pnpm` for development, npm is used in Docker builds for better compatibility across different environments.
 
 ### Running the Server Container
 
 ```bash
 docker run -d \
-  -p 3000:3000 \
+  -p 3010:3010 \
   -e NODE_ENV=production \
-  -e DB_HOST=postgres \
+  -e DB_HOST=your_postgres_host \
   -e DB_NAME=iky \
   -e DB_USER=iky_user \
   -e DB_PASSWORD=secure_password \
@@ -79,31 +107,25 @@ docker run -d \
   iky-server:local
 ```
 
-## Docker Compose Services
-
-The `docker-compose.yml` includes:
-
-- **postgres**: PostgreSQL 15 database with automatic schema initialization
-- **server**: IKY API server
-
-### Environment Variables
+## Environment Variables
 
 Key environment variables (set in `.env`):
 
 ```bash
-# Database
+# Database (External PostgreSQL)
+DB_HOST=localhost               # Your PostgreSQL host
 DB_NAME=iky
 DB_USER=iky_user
 DB_PASSWORD=your_secure_password
 DB_PORT=5432
 
 # Server
-PORT=3000
+PORT=3010                       # Default port (changed from 3000)
 NODE_ENV=production
 LOG_LEVEL=info
 
 # Security
-CORS_ORIGIN=*
+CORS_ORIGIN=*                   # Change to your domain in production
 RATE_LIMIT_MAX_REQUESTS=100
 ```
 
@@ -118,96 +140,85 @@ nano .env
 ```
 
 Set secure values for:
+- `DB_HOST` - Your PostgreSQL server hostname
 - `DB_PASSWORD` - Strong database password
 - `CORS_ORIGIN` - Your domain (not *)
 - Other security settings
 
-### 2. Start Services
+### 2. Start Service
 
 ```bash
 docker-compose up -d
 ```
 
+The server will automatically:
+- Run database migrations on startup
+- Create the admin panel
+- Expose the API on port 3010
+
 ### 3. Verify Deployment
 
 ```bash
-# Check all services are running
+# Check service is running
 docker-compose ps
 
 # Check logs
 docker-compose logs -f
 
 # Test health endpoint
-curl http://localhost:3000/api/v1/health
+curl http://localhost:3010/api/v1/health
+
+# Access admin panel
+open http://localhost:3010/admin.html
 ```
 
 ### 4. Database Migrations
 
-The database schema is automatically initialized on first run. The SQL migration files in `database/migrations/` are executed when the PostgreSQL container starts.
+Database migrations are **automatically executed** when the server starts. The SQL migration files in `database/migrations/` are run in order.
 
-## Prisma Integration
-
-The server includes Prisma ORM for database management:
-
-### Generate Prisma Client
-
+You can verify migrations in the logs:
 ```bash
-cd server
-pnpm run prisma:generate
+docker-compose logs server | grep migration
 ```
 
-### Using Prisma Studio (Development)
+### 5. First Admin User
 
-```bash
-cd server
-pnpm run prisma:studio
-```
-
-This opens a web UI at http://localhost:5555 to explore and edit your database.
-
-### Running Migrations
-
-```bash
-# Development
-pnpm run prisma:migrate
-
-# Production
-pnpm run prisma:migrate:prod
-```
+The first user registered via the `/api/v1/identify` endpoint automatically becomes an admin. Use the admin panel at `/admin.html` to manage users and settings.
 
 ## Useful Commands
 
 ### Docker Compose
 
 ```bash
-# Start services
+# Start service
 docker-compose up -d
 
-# Stop services
+# Stop service
 docker-compose down
 
 # View logs
 docker-compose logs -f server
-docker-compose logs -f postgres
 
-# Restart a service
+# Restart service
 docker-compose restart server
 
 # Rebuild and restart
 docker-compose up -d --build
 
-# Clean up everything (including volumes)
-docker-compose down -v
+# Clean up
+docker-compose down
 ```
 
 ### Database Management
 
+Since the database is external, use your PostgreSQL tools:
+
 ```bash
-# Access PostgreSQL
-docker-compose exec postgres psql -U iky_user -d iky
+# Connect to your database
+psql -h your_db_host -U iky_user -d iky
 
 # Backup database
-docker-compose exec postgres pg_dump -U iky_user iky > backup.sql
+pg_dump -h your_db_host -U iky_user iky > backup.sql
 
 # Restore database
 docker-compose exec -T postgres psql -U iky_user iky < backup.sql
@@ -252,7 +263,7 @@ docker-compose logs -f server
 
 ```bash
 # Monitor resource usage
-docker stats iky-server iky-db
+docker stats iky-server
 ```
 
 ## Scaling and Performance
@@ -286,36 +297,65 @@ docker-compose logs server
 # Verify environment variables
 docker-compose config
 
-# Restart services
+# Restart service
 docker-compose restart
 ```
 
 ### Database connection issues
 
 ```bash
-# Check database is running
-docker-compose ps postgres
+# Check if database is accessible
+psql -h $DB_HOST -U $DB_USER -d $DB_NAME
 
-# Test database connection
-docker-compose exec postgres pg_isready -U iky_user
+# Test from container
+docker-compose exec server sh -c 'echo "SELECT 1" | psql -h $DB_HOST -U $DB_USER -d $DB_NAME'
 
-# Check database logs
-docker-compose logs postgres
+# Check server logs for connection errors
+docker-compose logs server | grep -i database
 ```
 
 ### Port conflicts
 
-If port 3000 or 5432 are already in use:
+If port 3010 is already in use:
 
 ```bash
-# Edit .env and change ports
-PORT=3001
-DB_PORT=5433
+# Edit .env and change port
+PORT=3011
 
-# Restart services
+# Restart service
 docker-compose down
 docker-compose up -d
 ```
+
+### Migration failures
+
+If migrations fail:
+
+```bash
+# Check migration logs
+docker-compose logs server | grep migration
+
+# Manually run migrations (if needed)
+docker-compose exec server node -e "import('./src/utils/migrate.js').then(m => m.runMigrations())"
+
+# Reset and retry
+docker-compose restart server
+```
+
+## Security Recommendations
+
+1. **Use strong database passwords**
+2. **Set CORS_ORIGIN to your specific domain** (not *)
+3. **Use HTTPS in production** with a reverse proxy (nginx, Caddy)
+4. **Keep Docker images updated**
+5. **Regular database backups**
+6. **Monitor logs for suspicious activity**
+
+## Support
+
+For issues and questions:
+- GitHub Issues: https://github.com/sysfox/IKY/issues
+- Documentation: This guide and README.md
 
 ## Security Best Practices
 
